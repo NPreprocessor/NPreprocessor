@@ -19,10 +19,10 @@ namespace NPreprocessor.Macros.Derivations
 
         public string EndIfPrefix { get; }
 
-        public (List<string> result, bool invoked) Invoke(ILineReader reader, ITextReader txtReader, State state)
+        public (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state)
         {
-            var currentLine = reader.Current;
-            reader.Finish();
+            var currentLine = txtReader.Current.Remainder;
+            txtReader.Current.Finish();
             var prefixLength = Prefix.Length;
             var name = currentLine.Substring(prefixLength).Trim().Trim('\"');
 
@@ -42,34 +42,35 @@ namespace NPreprocessor.Macros.Derivations
                 }
                 else
                 {
-                    if (mode == 1 && txtReader.Current.StartsWith(ElsePrefix))
+                    if (mode == 1 && txtReader.Current.Remainder.StartsWith(ElsePrefix))
                     {
                         mode = 2;
                         continue;
                     }
 
-                    if (txtReader.Current.StartsWith(Prefix))
+                    if (txtReader.Current.Remainder.StartsWith(Prefix))
                     {
                         count++;
                     }
 
-                    if (txtReader.Current.StartsWith(EndIfPrefix))
+                    if (txtReader.Current.Remainder.StartsWith(EndIfPrefix))
                     {
                         count--;
                         if (count == 0)
                         {
+                            txtReader.Current.Consume(EndIfPrefix.Length);
                             continue;
                         }
                     }
 
                     if (mode == 1)
                     {
-                        trueLines.Add(txtReader.Current);
+                        trueLines.Add(txtReader.Current.Remainder);
                     }
 
                     if (mode == 2)
                     {
-                        falseLines.Add(txtReader.Current);
+                        falseLines.Add(txtReader.Current.Remainder);
                     }
                 }
             }
@@ -79,14 +80,14 @@ namespace NPreprocessor.Macros.Derivations
             return (new List<string> { m4Line }, true);
         }
 
-        public bool CanBeUsed(ILineReader currentLine, bool atStart)
+        public bool CanBeUsed(ITextReader txtReader, bool atStart)
         {
             if (atStart)
             {
-                return Regex.IsMatch(currentLine.Current, $"^{Prefix}\b");
+                return Regex.IsMatch(txtReader.Current.Remainder, $"^{Prefix}\b");
             }
 
-            return Regex.IsMatch(currentLine.Current, $@"{Prefix}");
+            return Regex.IsMatch(txtReader.Current.Remainder, $@"{Prefix}");
         }
     }
 }

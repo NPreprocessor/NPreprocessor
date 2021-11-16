@@ -9,13 +9,13 @@ namespace NPreprocessor.Macros
 
         private Regex _regex = new Regex($@"\bdnl\b.*", RegexOptions.Singleline);
 
-        public (List<string> result, bool invoked) Invoke(ILineReader reader, ITextReader txtReader, State state)
+        public (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state)
         {
-            if (_regex.IsMatch(reader.Current))
+            if (_regex.IsMatch(txtReader.Current.Remainder))
             {
-                var result = _regex.Replace(reader.Current, string.Empty);
+                var result = _regex.Replace(txtReader.Current.Remainder, string.Empty);
 
-                reader.Finish();
+                txtReader.Current.Finish();
                 state.MergePoints += 2;
 
                 return (new List<string>() { result }, true);
@@ -23,13 +23,13 @@ namespace NPreprocessor.Macros
             return (null, false);
         }
 
-        public bool CanBeUsed(ILineReader currentLine, bool atStart)
+        public bool CanBeUsed(ITextReader txtReader, bool atStart)
         {
             if (atStart)
             {
-                return Regex.IsMatch(currentLine.Current, $"^{Prefix}\b");
+                return Regex.IsMatch(txtReader.Current.Remainder, $"^{Prefix}\b");
             }
-            return Regex.IsMatch(currentLine.Current, $@"\b{Prefix}\b");
+            return Regex.IsMatch(txtReader.Current.Remainder, $@"\b{Prefix}\b");
         }
     }
 }

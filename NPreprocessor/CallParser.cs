@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -6,25 +7,32 @@ namespace NPreprocessor
 {
     public class CallParser
     {
-        private static Regex _invocation = new Regex(@"^([`\$\w]+)((?:[^\(\)])|(?<something>\()|(?<-something>\)))+?(?(something)(?!))", RegexOptions.Singleline);
+        private static Regex _invocation = new Regex(@"^([`\$\w]+)\(((?:[^\(\)])|(?<something>\()|(?<-something>\)))*?(?(something)(?!))\)", RegexOptions.Singleline);
+        private static Regex _partial = new Regex(@"^([`\$\w]+)\(", RegexOptions.Singleline);
 
-        public static (string name, string[] args, int length) GetInvocation(string line)
+        public static (string name, string[] args, int length) GetInvocation(ITextReader reader, int startIndex = 0)
         {
-            var matches = _invocation.Matches(line);
+            var matches = _invocation.Matches(reader.Current.Remainder, startIndex);
 
             if (matches.Count == 1)
             {
                 var value = matches[0].Value;
                 var name = matches[0].Groups[1].Value;
                 var argsWithBrackets = value.Substring(name.Length);
-                if (argsWithBrackets.Trim() == string.Empty)
-                {
-                    return (null, null, 0);
-                }
                 var argsTogether = argsWithBrackets.Substring(1, argsWithBrackets.LastIndexOf(')') - 1);
                 var args = SplitArguments(argsTogether);
 
                 return (name, args, name.Length + 2 + argsTogether.Length);
+            }
+            else
+            {
+                if (_partial.IsMatch(reader.Current.Remainder, startIndex))
+                {
+                    if (reader.AppendNext())
+                    {
+                        return GetInvocation(reader, startIndex);
+                    }
+                }
             }
 
             return (null, null, 0);

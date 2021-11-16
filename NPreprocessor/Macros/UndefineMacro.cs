@@ -14,31 +14,31 @@ namespace NPreprocessor.Macros
 
         public string Prefix => "undefine";
 
-        public (List<string> result, bool invoked) Invoke(ILineReader reader, ITextReader txtReader, State state)
+        public (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state)
         {
-            var call = CallParser.GetInvocation(reader.Current);
-            reader.Consume(call.length);
+            var call = CallParser.GetInvocation(txtReader);
+            txtReader.Current.Consume(call.length);
             var args = call.args;
             var name = MacroString.Trim(args[0]);
 
             if (defineMacro.IsDefined(name))
             {
                 defineMacro.Remove(name);
-                return (new List<string>() { reader.Current }, true);
+                return (new List<string>() { string.Empty }, true);
             }
             else
             {
-                return (new List<string>() { reader.Current }, false);
+                return (new List<string>() { string.Empty }, false);
             }
         }
 
-        public bool CanBeUsed(ILineReader currentLine, bool atStart)
+        public bool CanBeUsed(ITextReader txtReader, bool atStart)
         {
             if (atStart)
             {
-                return Regex.IsMatch(currentLine.Current, $"^{Prefix}\b");
+                return Regex.IsMatch(txtReader.Current.Remainder, $"^{Prefix}\b");
             }
-            return Regex.IsMatch(currentLine.Current, $@"\b{Prefix}\b");
+            return Regex.IsMatch(txtReader.Current.Remainder, $@"\b{Prefix}\b");
         }
     }
 }

@@ -14,7 +14,7 @@
 
         public bool AtStart => _index == 0;
 
-        public string Current
+        public string Remainder
         {
             get
             {

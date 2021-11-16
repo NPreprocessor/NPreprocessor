@@ -4,8 +4,8 @@ namespace NPreprocessor.Macros
 {
     public interface IMacro
     {
-        bool CanBeUsed(ILineReader currentLine, bool atStart);
+        bool CanBeUsed(ITextReader reader, bool atStart);
 
-        (List<string> result, bool invoked) Invoke(ILineReader currentLineReader, ITextReader reader, State state);
+        (List<string> result, bool invoked) Invoke(ITextReader reader, State state);
     }
 }

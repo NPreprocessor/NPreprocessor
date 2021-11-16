@@ -4,7 +4,7 @@
     {
         string FullLine { get; }
 
-        string Current { get; }
+        string Remainder { get; }
 
         bool AtStart { get; }
 

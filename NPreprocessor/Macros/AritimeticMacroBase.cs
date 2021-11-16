@@ -14,9 +14,9 @@ namespace NPreprocessor.Macros
 
         public DefineMacro DefineMacro { get; }
 
-        protected (List<string> result, bool invoked) Invoke(ILineReader currentLineReader, ITextReader reader, State state, int modification)
+        protected (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state, int modification)
         {
-            var call = CallParser.GetInvocation(reader.Current);
+            var call = CallParser.GetInvocation(txtReader);
             var args = call.args;
 
             if (args.Length < 1)
@@ -33,10 +33,9 @@ namespace NPreprocessor.Macros
             }
             else
             {
-                var txtReader = new TextReader(expression);
-                txtReader.MoveNext();
-                var lineReader = new LineReader(txtReader.Current);
-                var results = DefineMacro.Invoke(lineReader, txtReader, state);
+                var expressionTxtReader = new TextReader(expression);
+                expressionTxtReader.MoveNext();
+                var results = DefineMacro.Invoke(expressionTxtReader, state);
 
                 if (results.invoked)
                 {
@@ -54,7 +53,7 @@ namespace NPreprocessor.Macros
                     }
                 }
             }
-            currentLineReader.Consume(call.length);
+            txtReader.Current.Consume(call.length);
 
             _lastResults[expression] = result;
 

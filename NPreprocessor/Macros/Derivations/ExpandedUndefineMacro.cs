@@ -12,10 +12,10 @@ namespace NPreprocessor.Macros.Derivations
 
         public string Prefix { get; set; }
 
-        public (List<string> result, bool invoked) Invoke(ILineReader reader, ITextReader txtReader, State state)
+        public (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state)
         {
-            var line = reader.Current;
-            reader.Finish();
+            var line = txtReader.Current.Remainder;
+            txtReader.Current.Finish();
             var prefixLength = Prefix.Length;
             var name = line.Substring(prefixLength).TrimEnd('\r').TrimEnd('\n');
 
@@ -28,14 +28,14 @@ namespace NPreprocessor.Macros.Derivations
             return (line, false);
         }
 
-        public bool CanBeUsed(ILineReader currentLine, bool atStart)
+        public bool CanBeUsed(ITextReader txtReader, bool atStart)
         {
             if (atStart)
             {
-                return Regex.IsMatch(currentLine.Current, $"^{Prefix}\b");
+                return Regex.IsMatch(txtReader.Current.Remainder, $"^{Prefix}\b");
             }
 
-            return Regex.IsMatch(currentLine.Current, $@"{Prefix}");
+            return Regex.IsMatch(txtReader.Current.Remainder, $@"{Prefix}");
         }
     }
 }

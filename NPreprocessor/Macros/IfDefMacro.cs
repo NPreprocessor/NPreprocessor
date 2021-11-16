@@ -15,21 +15,19 @@ namespace NPreprocessor.Macros
 
         public string Prefix => "ifdef";
 
-        public bool CanBeUsed(ILineReader currentLine, bool atStart)
+        public bool CanBeUsed(ITextReader txtReader, bool atStart)
         {
             if (atStart)
             {
-                return Regex.IsMatch(currentLine.Current, $"^{Prefix}");
+                return Regex.IsMatch(txtReader.Current.Remainder, $"^{Prefix}");
             }
-            return Regex.IsMatch(currentLine.Current, $@"\b{Prefix}");
+            return Regex.IsMatch(txtReader.Current.Remainder, $@"\b{Prefix}");
         }
 
-        public (List<string> result, bool invoked) Invoke(ILineReader reader, ITextReader txtReader, State state)
+        public (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state)
         {
-            var line = reader.Current;
-
-            var call = CallParser.GetInvocation(line);
-            reader.Consume(call.length);
+            var call = CallParser.GetInvocation(txtReader);
+            txtReader.Current.Consume(call.length);
             var args = call.args;
             var name = MacroString.Trim(args[0]);
 

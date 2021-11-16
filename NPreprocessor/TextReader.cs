@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace NPreprocessor
 {
@@ -9,6 +10,7 @@ namespace NPreprocessor
         private char[] _textCharacters = null;
         private int _currentIndex = 0;
         private int _lineNumber = 0;
+        private ILineReader _lineReader = null;
 
         public TextReader(string text)
         {
@@ -18,11 +20,25 @@ namespace NPreprocessor
 
         public int LineNumber { get => _lineNumber; set => _lineNumber = value; }
 
-        public string Current { get; set; }
-
-        object IEnumerator.Current => Current;
+        public string CurrentLine { get; set; }
 
         public string LineContinuationCharacters { get; set; } = @"\";
+
+        private ILineReader LineReader
+        {
+            get
+            {
+                if (_lineReader == null && CurrentLine != null)
+                {
+                    _lineReader = new LineReader(CurrentLine);
+                }
+                return _lineReader;
+            }
+        }
+
+        ILineReader IEnumerator<ILineReader>.Current => LineReader;
+       
+        object IEnumerator.Current => LineReader;
 
         private void ReadLine()
         {
@@ -45,7 +61,7 @@ namespace NPreprocessor
                 }
             }
 
-            Current = result;
+            CurrentLine = result;
         }
 
         private string PeekNextLine(out int nextLineIndex)
@@ -113,7 +129,9 @@ namespace NPreprocessor
         {
             ReadLine();
 
-            return Current != null;
+            _lineReader = null;
+
+            return CurrentLine != null;
         }
 
         public void Reset()
@@ -123,6 +141,18 @@ namespace NPreprocessor
 
         public void Dispose()
         {
+        }
+
+        public bool AppendNext()
+        {
+            var current = LineReader.Remainder;
+            ReadLine();
+            if (CurrentLine != null)
+            {
+                _lineReader = new LineReader(current + Environment.NewLine + CurrentLine);
+                return true;
+            }
+            return false;
         }
     }
 }

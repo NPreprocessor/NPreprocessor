@@ -34,31 +34,30 @@ namespace NPreprocessor
             txtReader.MoveNext();
             var currentLine = txtReader.Current;
             if (currentLine == null) return null;
-            var lineReader = new LineReader(currentLine);
             var result = new List<string>();
 
-            while (lineReader.Current != null && lineReader.Current != String.Empty)
+            while (txtReader.Current?.Remainder != null && txtReader.Current?.Remainder != String.Empty)
             {
-                var macroToCall = _macros.FirstOrDefault(macro => macro.CanBeUsed(lineReader, true)) ?? _macros.FirstOrDefault(macro => macro.CanBeUsed(lineReader, false));
+                var macroToCall = _macros.FirstOrDefault(macro => macro.CanBeUsed(txtReader, true)) ?? _macros.FirstOrDefault(macro => macro.CanBeUsed(txtReader, false));
 
                 if (macroToCall != null)
                 {
-                    if (!ProcessMacro(txtReader, state, lineReader, result, macroToCall))
+                    if (!ProcessMacro(txtReader, state, result, macroToCall))
                     {
                         break;
                     }
                 }
                 else
                 {
-                    AddToResult(result, new List<string> { lineReader.Current }, false);
-                    lineReader.Finish();
+                    AddToResult(result, new List<string> { txtReader.Current.Remainder }, false);
+                    txtReader.Current.Finish();
                 }
             }
 
-            if (lineReader.Current == String.Empty)
+            if (txtReader.Current?.Remainder == String.Empty)
             {
                 result.Add(string.Empty);
-                lineReader.Finish();
+                txtReader.Current.Finish();
             }
 
             return result;
@@ -91,14 +90,16 @@ namespace NPreprocessor
             return result;
         }
 
-        private bool ProcessMacro(ITextReader txtReader, State state, LineReader lineReader, List<string> result, IMacro macroToCall)
+        private bool ProcessMacro(ITextReader txtReader, State state, List<string> result, IMacro macroToCall)
         {
             state.Stack.Push(macroToCall);
-            var macroResult = macroToCall.Invoke(lineReader, txtReader, state);
+            var before = txtReader.Current.Remainder;
+
+            var macroResult = macroToCall.Invoke(txtReader, state);
 
             if (!macroResult.invoked)
             {
-                AddToResult(result, new List<string> { lineReader.Current }, false);
+                AddToResult(result, new List<string> { before }, false);
                 state.Stack.Pop();
                 return false;
             }

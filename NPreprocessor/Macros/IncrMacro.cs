@@ -12,18 +12,18 @@ namespace NPreprocessor.Macros
 
         public string Prefix => "incr";
 
-        public bool CanBeUsed(ILineReader currentLine, bool atStart)
+        public bool CanBeUsed(ITextReader txtReader, bool atStart)
         {
             if (atStart)
             {
-                return Regex.IsMatch(currentLine.Current, @$"^{Prefix}\(");
+                return Regex.IsMatch(txtReader.Current.Remainder, @$"^{Prefix}\(");
             }
-            return Regex.IsMatch(currentLine.Current, $@"\b{Prefix}\(");
+            return Regex.IsMatch(txtReader.Current.Remainder, $@"\b{Prefix}\(");
         }
 
-        public (List<string> result, bool invoked) Invoke(ILineReader currentLineReader, ITextReader reader, State state)
+        public (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state)
         {
-            return base.Invoke(currentLineReader, reader, state, 1);
+            return base.Invoke(txtReader, state, 1);
         }
     }
 }

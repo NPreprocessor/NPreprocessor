@@ -1,6 +1,4 @@
-﻿using NPreprocessor;
-using NPreprocessor.Macros;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace NPreprocessor.Macros.Derivations
@@ -22,10 +20,10 @@ namespace NPreprocessor.Macros.Derivations
 
         public string Prefix { get; set; }
 
-        public (List<string> result, bool invoked) Invoke(ILineReader reader, ITextReader txtReader, State state)
+        public (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state)
         {
-            var line = reader.Current;
-            reader.Finish();
+            var line = txtReader.Current.Remainder;
+            txtReader.Current.Finish();
             var methodMatch = _method.Match(line);
 
             if (methodMatch.Success)
@@ -51,14 +49,14 @@ namespace NPreprocessor.Macros.Derivations
             }
         }
 
-        public bool CanBeUsed(ILineReader currentLine, bool atStart)
+        public bool CanBeUsed(ITextReader txtReader, bool atStart)
         {
             if (atStart)
             {
-                return Regex.IsMatch(currentLine.Current, $"^{Prefix}\b");
+                return Regex.IsMatch(txtReader.Current.Remainder, $"^{Prefix}\b");
             }
 
-            return Regex.IsMatch(currentLine.Current, $@"{Prefix}");
+            return Regex.IsMatch(txtReader.Current.Remainder, $@"{Prefix}");
         }
     }
 }

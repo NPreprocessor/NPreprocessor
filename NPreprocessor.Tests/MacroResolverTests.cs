@@ -43,6 +43,7 @@ incr(5)"));
             Assert.Equal("5", result[0]);
             Assert.Equal("6", result[1]);
         }
+
         [Fact]
         public void IncrScenario2()
         {
@@ -245,6 +246,45 @@ Operator";
             Assert.Equal(string.Empty, macroResolver.Do(reader)[0]);
             var result = macroResolver.Do(reader);
             Assert.Equal("File with Hello.", result.Single());
+        }
+
+        [Fact]
+        public void DefineAndNewLines()
+        {
+            var macroResolver = new MacroResolver();
+            var reader = CreateTextReader(@"define(a, 1
+2
+3
+4)dnl
+`a'
+a");
+            var results = macroResolver.DoAll(reader);
+            Assert.Equal(5, results.Count);
+            Assert.Equal("`a'", results[0]);
+            Assert.Equal(" 1", results[1]);
+            Assert.Equal("2", results[2]);
+            Assert.Equal("3", results[3]);
+            Assert.Equal("4", results[4]);
+
+        }
+
+        [Fact]
+        public void DefineAndNewLinesAndContinuations()
+        {
+            var macroResolver = new MacroResolver();
+            var reader = CreateTextReader(@"define(a, 1
+2
+3 \
+4)dnl
+`a'
+a");
+            var results = macroResolver.DoAll(reader);
+            Assert.Equal(4, results.Count);
+            Assert.Equal("`a'", results[0]);
+            Assert.Equal(" 1", results[1]);
+            Assert.Equal("2", results[2]);
+            Assert.Equal("3 4", results[3]);
+
         }
     }
 }

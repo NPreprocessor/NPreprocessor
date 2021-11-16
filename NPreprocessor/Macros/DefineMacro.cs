@@ -18,25 +18,31 @@ namespace NPreprocessor.Macros
 
         public string Prefix { get; } = "define";
 
-        public (List<string> result, bool invoked) Invoke(ILineReader reader, ITextReader txtReader, State state)
+        public (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state)
         {
-            if (reader.Current.StartsWith(Prefix))
+            if (txtReader.Current.Remainder.StartsWith(Prefix))
             {
-                return Define(reader);
+                return Define(txtReader);
             }
-            return Resolve(reader);
+            return Resolve(txtReader);
         }
 
-        private (List<string> result, bool invoked) Define(ILineReader reader)
+        private (List<string> result, bool invoked) Define(ITextReader txtReader)
         {
-            var call = CallParser.GetInvocation(reader.Current);
+            var call = CallParser.GetInvocation(txtReader);
+
+            if (call.name == null)
+            {
+                return (null, false);
+            }
+
             var args = call.args;
 
             if (args.Length < 1)
             {
                 throw new System.Exception("Invalid def");
             }
-            reader.Consume(call.length);
+            txtReader.Current.Consume(call.length);
 
             var name = MacroString.Trim(args[0]);
 
@@ -62,15 +68,15 @@ namespace NPreprocessor.Macros
             return (new List<string> { String.Empty }, true);
         }
 
-        private (List<string> result, bool resolved) Resolve(ILineReader reader)
+        private (List<string> result, bool resolved) Resolve(ITextReader txtReader)
         {
             bool resolved = false;
-            string initial = reader.Current;
-            string result = reader.Current;
+            string initial = txtReader.Current.Remainder;
+            string result = txtReader.Current.Remainder;
             
             foreach (var key in _mappings.Keys)
             {
-                var matches = _regexes[key].Matches(reader.Current);
+                var matches = _regexes[key].Matches(txtReader.Current.Remainder);
                 if (matches.Count > 0)
                 {
                     foreach (Match match in matches)
@@ -79,7 +85,8 @@ namespace NPreprocessor.Macros
                         if (_hasParameters.ContainsKey(key) && _hasParameters[key])
                         {
                             var remainder = result.Substring(match.Index);
-                            var call = CallParser.GetInvocation(remainder);
+
+                            var call = CallParser.GetInvocation(txtReader, match.Index);
 
                             replacement = replacement.Replace($"$0", key);
 
@@ -121,7 +128,7 @@ namespace NPreprocessor.Macros
 
             if (resolved)
             {
-                reader.Consume(initial.Length);
+                txtReader.Current.Consume(initial.Length);
             }
 
             return (new List<string>(result.Split(Environment.NewLine)), resolved);
@@ -137,16 +144,16 @@ namespace NPreprocessor.Macros
             return _mappings.ContainsKey(name);
         }
 
-        public bool CanBeUsed(ILineReader currentLine, bool atStart)
+        public bool CanBeUsed(ITextReader textReader, bool atStart)
         {
             if (atStart)
             {
-                return Regex.IsMatch(currentLine.Current, $"^{Prefix}\b")
-                    || _startRegexes.Any(r => r.Value.IsMatch(currentLine.Current));
+                return Regex.IsMatch(textReader.Current.Remainder, $"^{Prefix}\b")
+                    || _startRegexes.Any(r => r.Value.IsMatch(textReader.Current.Remainder));
             }
 
-            return Regex.IsMatch(currentLine.Current, @"\s*" + Prefix)
-                || _regexes.Any(r => r.Value.IsMatch(currentLine.Current));
+            return Regex.IsMatch(textReader.Current.Remainder, @"\s*" + Prefix)
+                || _regexes.Any(r => r.Value.IsMatch(textReader.Current.Remainder));
         }
     }
 }
