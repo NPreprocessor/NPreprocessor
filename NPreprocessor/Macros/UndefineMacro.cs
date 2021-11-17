@@ -23,6 +23,7 @@ namespace NPreprocessor.Macros
 
             if (defineMacro.IsDefined(name))
             {
+                state.Definitions.Remove(name);
                 defineMacro.Remove(name);
                 return (new List<string>() { string.Empty }, true);
             }

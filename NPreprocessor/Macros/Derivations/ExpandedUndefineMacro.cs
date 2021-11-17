@@ -5,9 +5,12 @@ namespace NPreprocessor.Macros.Derivations
 {
     public class ExpandedUndefineMacro : IMacro
     {
-        public ExpandedUndefineMacro(string prefix)
+        private readonly string defPrefix;
+
+        public ExpandedUndefineMacro(string prefix, string defPrefix = "")
         {
             Prefix = prefix;
+            this.defPrefix = defPrefix;
         }
 
         public string Prefix { get; set; }
@@ -19,7 +22,7 @@ namespace NPreprocessor.Macros.Derivations
             var prefixLength = Prefix.Length;
             var name = line.Substring(prefixLength).TrimEnd('\r').TrimEnd('\n').Trim();
 
-            var m4Line = "undefine(`" + name + "')";
+            var m4Line = "undefine(`" + defPrefix + name + "')";
             return (new List<string>() { m4Line }, true);
         }
 
