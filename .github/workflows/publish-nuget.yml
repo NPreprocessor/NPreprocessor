@@ -1,0 +1,32 @@
+name: Publish to NuGet
+
+on:
+  release:
+    branches: [ main ]
+    types: [ published ]
+  
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@master
+    
+    - name: Setup dotnet tooling
+      uses: actions/setup-dotnet@master
+      with:
+        dotnet-version: '5.0.100'
+    
+    - name: Restore dependencies
+      run:           
+          dotnet restore
+
+    - name: Compile
+      run: dotnet build NPreprocessor\NPreprocessor.csproj --configuration Release --no-restore
+
+    - name: Publish to NuGet
+      env:
+        APIKEY: ${{ secrets.NUGET_APIKEY }}
+      run: dotnet nuget push NPreprocessor\bin\Release\NPreprocessor.*.nupkg -k $env:APIKEY -s "https://api.nuget.org/v3/index.json"
