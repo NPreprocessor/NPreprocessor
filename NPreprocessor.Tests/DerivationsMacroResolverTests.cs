@@ -28,15 +28,17 @@ namespace NPreprocessor.Tests
             var macroResolver = new MacroResolver();
             macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define", "`"));
 
-            var reader = CreateLineReader(@"`define op(a,b) (a) \
+            var reader = CreateLineReader(@"`define x 111.345
+`define op(a,b) (a) \
 * (b)
-`op(`op(3,2),2)
+`op(`op(3,2),`x)
 ");
 
             var results = macroResolver.DoAll(reader);
-            Assert.Equal(2, results.Count);
+            Assert.Equal(3, results.Count);
             Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("((3) * (2)) * (2)", results[1]);
+            Assert.Equal(string.Empty, results[1]);
+            Assert.Equal("((3) * (2)) * (111.345)", results[2]);
         }
 
         [Fact]

@@ -77,12 +77,14 @@ namespace NPreprocessor.Macros
             string initial = txtReader.Current.Remainder;
             string result = txtReader.Current.Remainder;
             
-            foreach (var key in _mappings.Keys)
+            List<(string key, Match match)> items = _mappings.Keys.Select(key => (key, _regexes[key].Match(result))).Where(match => match.Item2.Success).OrderBy(i => i.Item2.Index).ToList();
+
+            if (items.Any())
             {
-                var matches = _regexes[key].Matches(txtReader.Current.Remainder);
-                if (matches.Count > 0)
+                foreach (var item in items.Take(1))
                 {
-                    var match = matches.First();
+                    var match = item.match;
+                    var key = item.key;
 
                     if (IsInsideString(result, match.Index, state))
                     {
@@ -132,7 +134,7 @@ namespace NPreprocessor.Macros
                     resolved = true;
                 }
             }
-
+            
             if (resolved)
             {
                 txtReader.Current.Consume(initial.Length);
