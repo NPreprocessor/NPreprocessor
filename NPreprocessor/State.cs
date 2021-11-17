@@ -11,5 +11,6 @@ namespace NPreprocessor
 
         public Stack<IMacro> Stack { get; set; } = new Stack<IMacro>();
 
+        public HashSet<string> Definitions { get; set; } = new HashSet<string>();
     }
 }

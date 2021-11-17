@@ -234,7 +234,7 @@ Operator";
             var macroResolver = new MacroResolver();
             var reader = CreateTextReader("include(`data.txt')a");
             var result = macroResolver.Do(reader);
-            Assert.Equal("File with dataa", result.Single());
+            Assert.Equal("File with `dataa", result.Single());
         }
 
         [Fact]
@@ -245,7 +245,7 @@ Operator";
 
             Assert.Equal(string.Empty, macroResolver.Do(reader)[0]);
             var result = macroResolver.Do(reader);
-            Assert.Equal("File with Hello.", result.Single());
+            Assert.Equal("File with `data", result.Single());
         }
 
         [Fact]

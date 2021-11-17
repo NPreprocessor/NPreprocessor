@@ -16,10 +16,10 @@ namespace NPreprocessor.Macros.Derivations
         {
             var line = txtReader.Current.Remainder;
             var prefixLength = Prefix.Length;
-            var fileName = line.Substring(prefixLength).Trim().Trim('\"');
+            var fileName = MacroString.Trim(line.Substring(prefixLength).Trim().Trim('\"'));
             txtReader.Current.Finish();
 
-            var m4Line = $"include(`{fileName}')";
+            var m4Line = $"include({fileName})";
             return (new List<string>() { m4Line }, true);
         }
 

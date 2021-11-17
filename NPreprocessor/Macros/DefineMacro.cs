@@ -22,14 +22,14 @@ namespace NPreprocessor.Macros
         {
             if (txtReader.Current.Remainder.StartsWith(Prefix))
             {
-                return Define(txtReader);
+                return Define(txtReader, state);
             }
-            return Resolve(txtReader);
+            return Resolve(txtReader, state);
         }
 
-        private (List<string> result, bool invoked) Define(ITextReader txtReader)
+        private (List<string> result, bool invoked) Define(ITextReader txtReader, State state)
         {
-            var call = CallParser.GetInvocation(txtReader);
+            var call = CallParser.GetInvocation(txtReader, 0, state.Definitions);
 
             if (call.name == null)
             {
@@ -63,12 +63,15 @@ namespace NPreprocessor.Macros
             {
                 _mappings[name] = string.Empty;
             }
-            _regexes[name] = new Regex($@"(?<!`[^']*){Regex.Escape(name)}\b");
+            _regexes[name] = new Regex($@"{Regex.Escape(name)}\b");
             _startRegexes[name] = new Regex($@"^{Regex.Escape(name)}\b");
+
+            state.Definitions.Add(name);
+
             return (new List<string> { String.Empty }, true);
         }
 
-        private (List<string> result, bool resolved) Resolve(ITextReader txtReader)
+        private (List<string> result, bool resolved) Resolve(ITextReader txtReader, State state)
         {
             bool resolved = false;
             string initial = txtReader.Current.Remainder;
@@ -79,49 +82,53 @@ namespace NPreprocessor.Macros
                 var matches = _regexes[key].Matches(txtReader.Current.Remainder);
                 if (matches.Count > 0)
                 {
-                    foreach (Match match in matches)
+                    var match = matches.First();
+
+                    if (IsInsideString(result, match.Index, state))
                     {
-                        var replacement = _mappings[key];
-                        if (_hasParameters.ContainsKey(key) && _hasParameters[key])
+                        continue;
+                    }
+
+                    var replacement = _mappings[key];
+                    if (_hasParameters.ContainsKey(key) && _hasParameters[key])
+                    {
+                        var remainder = result.Substring(match.Index);
+
+                        var call = CallParser.GetInvocation(txtReader, match.Index, state.Definitions);
+
+                        replacement = replacement.Replace($"$0", key);
+
+                        int i = 1;
+
+                        if (call.args != null)
                         {
-                            var remainder = result.Substring(match.Index);
-
-                            var call = CallParser.GetInvocation(txtReader, match.Index);
-
-                            replacement = replacement.Replace($"$0", key);
-
-                            int i = 1;
-
-                            if (call.args != null)
+                            if (replacement.Contains("\"$\""))
                             {
-                                if (replacement.Contains("\"$\""))
-                                {
-                                    replacement = replacement.Replace("\"$\"", "$" + MacroString.Trim(call.args[0]));
-                                }
+                                replacement = replacement.Replace("\"$\"", "$" + MacroString.Trim(call.args[0]));
+                            }
 
-                                foreach (var arg in call.args)
-                                {
-                                    var argR = MacroString.Trim(call.args[i - 1]);
-                                    replacement = replacement.Replace($"${i}", argR);
-                                    i++;
-                                }
-                            }
-                            if (call.length > 0)
+                            foreach (var arg in call.args)
                             {
-                                var callString = remainder.Substring(0, call.length);
-                                result = result.Replace(callString, replacement);
+                                var argR = MacroString.Trim(call.args[i - 1]);
+                                replacement = replacement.Replace($"${i}", argR);
+                                i++;
                             }
-                            else
-                            {
-                                result = result.Replace(key, replacement);
-                            }
+                        }
+                        if (call.length > 0)
+                        {
+                            var callString = remainder.Substring(0, call.length);
+                            result = result.Replace(callString, replacement);
                         }
                         else
                         {
                             result = result.Replace(key, replacement);
                         }
-
                     }
+                    else
+                    {
+                        result = result.Replace(key, replacement);
+                    }
+
                     resolved = true;
                 }
             }
@@ -132,6 +139,21 @@ namespace NPreprocessor.Macros
             }
 
             return (new List<string>(result.Split(Environment.NewLine)), resolved);
+        }
+
+        private bool IsInsideString(string result, int index, State state)
+        {
+            var lastStartPos = result.Substring(0, index).LastIndexOf('`');
+
+            if (lastStartPos == -1) return false;
+
+
+            if (state.Definitions.Any(d => result.Substring(lastStartPos).StartsWith(d)))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public void Remove(string name)

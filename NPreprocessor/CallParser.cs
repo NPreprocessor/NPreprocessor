@@ -7,11 +7,11 @@ namespace NPreprocessor
 {
     public class CallParser
     {
-        private static Regex _macroCallPrefix = new Regex(@"^([`\$\w]+)\(", RegexOptions.Singleline);
+        private static Regex _macroCallPrefix = new Regex(@"([`\$\w]+)\(", RegexOptions.Singleline);
 
-        public static (string name, string[] args, int length) GetInvocation(ITextReader reader, int startIndex = 0)
+        public static (string name, string[] args, int length) GetInvocation(ITextReader reader, int startIndex = 0, HashSet<string> defs = null)
         {
-            var match = GetMatch(reader.Current.Remainder, startIndex);
+            var match = GetMatch(reader.Current.Remainder, startIndex, defs);
 
             if (match.success)
             {
@@ -23,19 +23,16 @@ namespace NPreprocessor
             }
             else
             {
-                if (_macroCallPrefix.IsMatch(reader.Current.Remainder, startIndex))
+                if (reader.AppendNext())
                 {
-                    if (reader.AppendNext())
-                    {
-                        return GetInvocation(reader, startIndex);
-                    }
+                    return GetInvocation(reader, startIndex);
                 }
             }
 
             return (null, null, 0);
         }
 
-        private static (bool success, string name, string args) GetMatch(string remainder, int startIndex)
+        private static (bool success, string name, string args) GetMatch(string remainder, int startIndex, HashSet<string> defs)
         {
             var match = _macroCallPrefix.Match(remainder, startIndex);
             if (match.Success)
@@ -44,10 +41,10 @@ namespace NPreprocessor
                 int counter = 0;
                 bool insideString = false;
                 int i = 0;
-                int start = match.Length - 1;
-                for (i = match.Length - 1; i < remainder.Length; i++)
+                int start = match.Index + name.Length;
+                for (i = start; i < remainder.Length; i++)
                 {
-                    if (remainder[i] == '`')
+                    if (remainder[i] == '`' && (defs == null || defs.All(d => !remainder.Substring(i).StartsWith(d))))
                     {
                         insideString = true;
                     }

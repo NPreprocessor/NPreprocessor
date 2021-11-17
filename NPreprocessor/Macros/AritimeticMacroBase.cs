@@ -16,7 +16,7 @@ namespace NPreprocessor.Macros
 
         protected (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state, int modification)
         {
-            var call = CallParser.GetInvocation(txtReader);
+            var call = CallParser.GetInvocation(txtReader, 0, state.Definitions);
             var args = call.args;
 
             if (args.Length < 1)

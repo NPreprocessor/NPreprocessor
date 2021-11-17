@@ -23,6 +23,23 @@ namespace NPreprocessor.Tests
         }
 
         [Fact]
+        public void DefineMultilineWithArguments()
+        {
+            var macroResolver = new MacroResolver();
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define", "`"));
+
+            var reader = CreateLineReader(@"`define op(a,b) (a) \
+* (b)
+`op(`op(3,2),2)
+");
+
+            var results = macroResolver.DoAll(reader);
+            Assert.Equal(2, results.Count);
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal("((3) * (2)) * (2)", results[1]);
+        }
+
+        [Fact]
         public void DefineResolves()
         {
             var macroResolver = new MacroResolver();
@@ -33,7 +50,6 @@ namespace NPreprocessor.Tests
             Assert.Equal(string.Empty, macroResolver.Do(reader)[0]);
             Assert.Equal("Hello.", macroResolver.Do(reader).Single());
         }
-
 
         [Fact]
         public void DefineResolvesWithPrefix()
@@ -77,16 +93,29 @@ name1");
         public void DefineAndInclude()
         {
             var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define", "`"));
             macroResolver.Macros.Insert(0, new ExpandedIncludeMacro("`include"));
 
-            var reader = CreateLineReader("`define data Hello.\r\n`include \"data.txt\"");
+            var reader = CreateLineReader("`define data Hello.\r\n`include \"`data.txt'\"");
 
             Assert.Equal(string.Empty, macroResolver.Do(reader)[0]);
             var result = macroResolver.Do(reader);
             Assert.Equal("File with Hello.", result.Single());
         }
 
+        [Fact]
+        public void DefineNameAndInclude()
+        {
+            var macroResolver = new MacroResolver();
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define", "`"));
+            macroResolver.Macros.Insert(0, new ExpandedIncludeMacro("`include"));
+
+            var reader = CreateLineReader("`define name data\r\n`include \"`name.txt\"");
+
+            var results = macroResolver.DoAll(reader);
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal("File with `data", results[1]);
+        }
 
         [Fact]
         public void Include()
@@ -96,7 +125,7 @@ name1");
 
             var reader = CreateLineReader("`include \"data.txt\"");
             var result = macroResolver.Do(reader);
-            Assert.Equal("File with data", result.Single());
+            Assert.Equal("File with `data", result.Single());
         }
 
         [Fact]

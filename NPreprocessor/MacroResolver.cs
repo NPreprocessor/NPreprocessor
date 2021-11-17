@@ -16,7 +16,7 @@ namespace NPreprocessor
             _macros.Add(defineMacro);
             _macros.Add(new IfDefMacro(defineMacro));
             _macros.Add(new IfNDefMacro(defineMacro));
-            _macros.Add(new IncludeMacro());
+            _macros.Add(new IncludeMacro(defineMacro));
             _macros.Add(new DnlMacro());
             _macros.Add(new IncrMacro(defineMacro));
             _macros.Add(new DecrMacro(defineMacro));
@@ -119,7 +119,7 @@ namespace NPreprocessor
                 }
 
                 var cascadeTextReader = new TextReader(string.Join(Environment.NewLine, lines));
-                var cascadeResult = DoAll(cascadeTextReader, new State() { Stack = new Stack<IMacro>(state.Stack) });
+                var cascadeResult = DoAll(cascadeTextReader, new State() { Stack = new Stack<IMacro>(state.Stack), Definitions = state.Definitions });
 
                 AddToResult(result, cascadeResult, state.CreateNewLine);
             }
