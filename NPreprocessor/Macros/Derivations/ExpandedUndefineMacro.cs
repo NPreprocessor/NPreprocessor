@@ -17,7 +17,7 @@ namespace NPreprocessor.Macros.Derivations
             var line = txtReader.Current.Remainder;
             txtReader.Current.Finish();
             var prefixLength = Prefix.Length;
-            var name = line.Substring(prefixLength).TrimEnd('\r').TrimEnd('\n');
+            var name = line.Substring(prefixLength).TrimEnd('\r').TrimEnd('\n').Trim();
 
             var m4Line = "undefine(`" + name + "')";
             return (new List<string>() { m4Line }, true);

@@ -183,9 +183,10 @@ Operator";
             var macroResolver = new MacroResolver();
             var reader = CreateTextReader("define(name1, `Hello.')\r\nundefine(`name1')\r\nname1");
 
-            Assert.Equal(string.Empty, macroResolver.Do(reader)[0]);
-            Assert.Equal(string.Empty, macroResolver.Do(reader)[0]);
-            Assert.Equal("name1", macroResolver.Do(reader).Single());
+            var results = macroResolver.DoAll(reader);
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal(string.Empty, results[1]);
+            Assert.Equal("name1", results[2]);
         }
 
         [Fact]

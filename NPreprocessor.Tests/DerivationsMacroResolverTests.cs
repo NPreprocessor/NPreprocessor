@@ -52,6 +52,21 @@ namespace NPreprocessor.Tests
         }
 
         [Fact]
+        public void Undefine()
+        {
+            var macroResolver = new MacroResolver();
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            macroResolver.Macros.Insert(0, new ExpandedUndefineMacro("`undef"));
+
+            var reader = CreateLineReader("`define name1 Hello.\r\n`undef name1\r\nname1");
+            var results = macroResolver.DoAll(reader);
+
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal(string.Empty, results[1]);
+            Assert.Equal("name1", results[2]);
+        }
+
+        [Fact]
         public void DefineResolvesWithPrefix()
         {
             var macroResolver = new MacroResolver();
