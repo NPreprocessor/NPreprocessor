@@ -269,6 +269,18 @@ a");
         }
 
         [Fact]
+        public void DefineAndBrackets()
+        {
+            var macroResolver = new MacroResolver();
+     
+            var reader = CreateTextReader(@"define(a, `b(()')dnl
+a"); 
+            var results = macroResolver.DoAll(reader);
+            Assert.Equal(1, results.Count);
+            Assert.Equal("b(()", results[0]);
+        }
+
+        [Fact]
         public void DefineAndNewLinesAndContinuations()
         {
             var macroResolver = new MacroResolver();

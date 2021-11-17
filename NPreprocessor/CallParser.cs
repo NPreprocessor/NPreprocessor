@@ -7,26 +7,23 @@ namespace NPreprocessor
 {
     public class CallParser
     {
-        private static Regex _invocation = new Regex(@"^([`\$\w]+)\(((?:[^\(\)])|(?<something>\()|(?<-something>\)))*?(?(something)(?!))\)", RegexOptions.Singleline);
-        private static Regex _partial = new Regex(@"^([`\$\w]+)\(", RegexOptions.Singleline);
+        private static Regex _macroCallPrefix = new Regex(@"^([`\$\w]+)\(", RegexOptions.Singleline);
 
         public static (string name, string[] args, int length) GetInvocation(ITextReader reader, int startIndex = 0)
         {
-            var matches = _invocation.Matches(reader.Current.Remainder, startIndex);
+            var match = GetMatch(reader.Current.Remainder, startIndex);
 
-            if (matches.Count == 1)
+            if (match.success)
             {
-                var value = matches[0].Value;
-                var name = matches[0].Groups[1].Value;
-                var argsWithBrackets = value.Substring(name.Length);
-                var argsTogether = argsWithBrackets.Substring(1, argsWithBrackets.LastIndexOf(')') - 1);
-                var args = SplitArguments(argsTogether);
+                var name = match.name;
+                var argsWithBrackets = match.args;
+                var args = SplitArguments(argsWithBrackets);
 
-                return (name, args, name.Length + 2 + argsTogether.Length);
+                return (name, args, name.Length + 2 + argsWithBrackets.Length);
             }
             else
             {
-                if (_partial.IsMatch(reader.Current.Remainder, startIndex))
+                if (_macroCallPrefix.IsMatch(reader.Current.Remainder, startIndex))
                 {
                     if (reader.AppendNext())
                     {
@@ -36,6 +33,55 @@ namespace NPreprocessor
             }
 
             return (null, null, 0);
+        }
+
+        private static (bool success, string name, string args) GetMatch(string remainder, int startIndex)
+        {
+            var match = _macroCallPrefix.Match(remainder, startIndex);
+            if (match.Success)
+            {
+                string name = match.Groups[1].Value;
+                int counter = 0;
+                bool insideString = false;
+                int i = 0;
+                int start = match.Length - 1;
+                for (i = match.Length - 1; i < remainder.Length; i++)
+                {
+                    if (remainder[i] == '`')
+                    {
+                        insideString = true;
+                    }
+
+                    if (remainder[i] == '\'')
+                    {
+                        insideString = false;
+                    }
+
+                    if (remainder[i] == '(' && !insideString)
+                    {
+                        counter++;
+                    }
+
+                    if (remainder[i] == ')' && !insideString)
+                    {
+                        counter--;
+                    }
+
+                    if (counter == 0)
+                    {
+                        break;
+                    }
+                }
+
+                if (counter == 0)
+                {
+                    var args = remainder.Substring(start + 1, i - start - 1);
+                    return (true, name, args);
+                }
+
+                
+            }
+            return (false,null, null);
         }
 
         private static string[] SplitArguments(string args)
