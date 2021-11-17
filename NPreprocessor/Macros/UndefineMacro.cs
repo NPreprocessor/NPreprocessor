@@ -25,12 +25,8 @@ namespace NPreprocessor.Macros
             {
                 state.Definitions.Remove(name);
                 defineMacro.Remove(name);
-                return (new List<string>() { string.Empty }, true);
             }
-            else
-            {
-                return (new List<string>() { string.Empty }, false);
-            }
+            return (new List<string>() { string.Empty }, true);
         }
 
         public bool CanBeUsed(ITextReader txtReader, bool atStart)
