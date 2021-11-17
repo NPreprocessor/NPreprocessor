@@ -36,7 +36,7 @@ namespace NPreprocessor.Macros
         {
             if (atStart)
             {
-                return Regex.IsMatch(txtReader.Current.Remainder, $"^{Prefix}\b");
+                return Regex.IsMatch(txtReader.Current.Remainder, @$"^{Prefix}\b");
             }
             return Regex.IsMatch(txtReader.Current.Remainder, $@"\b{Prefix}\b");
         }
