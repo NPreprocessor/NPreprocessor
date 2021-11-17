@@ -1,14 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>$(VersionPrefix)</Version>
+    <Version>1.0.0-alpha-3</Version>
     <Copyright>Marcin Gołębiowski</Copyright>
     <PackageProjectUrl>https://github.com/CFGToolkit/NPreprocessor</PackageProjectUrl>
     <PackageTags>preprocessor .net csharp</PackageTags>
-    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
-    <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <RepositoryUrl>https://github.com/CFGToolkit/NPreprocessor</RepositoryUrl>
   </PropertyGroup>
 
 </Project>
