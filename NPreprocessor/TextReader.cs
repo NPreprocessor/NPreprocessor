@@ -7,14 +7,16 @@ namespace NPreprocessor
     public class TextReader : ITextReader
     {
         private readonly string _text = null;
+        private readonly string _newLineCharacters;
         private char[] _textCharacters = null;
         private int _currentIndex = 0;
         private int _lineNumber = 0;
         private ILineReader _lineReader = null;
 
-        public TextReader(string text)
+        public TextReader(string text, string newLineCharacters)
         {
             _text = text;
+            this._newLineCharacters = newLineCharacters;
             _textCharacters = text.ToCharArray();
         }
 
@@ -39,6 +41,8 @@ namespace NPreprocessor
         ILineReader IEnumerator<ILineReader>.Current => LineReader;
        
         object IEnumerator.Current => LineReader;
+
+        public string NewLineEnding => _newLineCharacters;
 
         private void ReadLine()
         {
@@ -77,52 +81,62 @@ namespace NPreprocessor
         {
             var start = _currentIndex;
 
+            if (_currentIndex == _textCharacters.Length)
+            {
+                _currentIndex++;
+                return String.Empty;
+            }
+
             if (_currentIndex > _textCharacters.Length)
             {
                 return null;
             }
 
-            while (_currentIndex < _textCharacters.Length
-                && _textCharacters[_currentIndex] != '\n'
-                && _textCharacters[_currentIndex] != '\r')
+            while (_currentIndex < _textCharacters.Length)
             {
+                if (StartWith(_textCharacters, _currentIndex, NewLineEnding))
+                {
+                    break;
+                }
                 _currentIndex++;
             }
-            
-            if (Environment.NewLine.Length == 2 && _currentIndex < _textCharacters.Length - 1)
-            {
-                var forward = _textCharacters[_currentIndex].ToString() + _textCharacters[_currentIndex + 1].ToString();
 
-                if (forward == Environment.NewLine)
-                {
-                    _currentIndex += Environment.NewLine.Length;
-                }
-            }
-
-            if (Environment.NewLine.Length == 1 && _currentIndex < _textCharacters.Length)
-            {
-                var forward = _textCharacters[_currentIndex].ToString();
-
-                if (forward == Environment.NewLine)
-                {
-                    _currentIndex += Environment.NewLine.Length;
-                }
-            }
-
-            var line = new string(_textCharacters, start, _currentIndex - start);
-            
             if (_currentIndex == _textCharacters.Length)
             {
+                var line = new string(_textCharacters, start, _currentIndex - start);
                 _currentIndex++;
+                return line;
             }
-
-            LineNumber++;
-
-            if (line.EndsWith(Environment.NewLine))
+            else
             {
-                return line.Substring(0, line.Length - Environment.NewLine.Length);
+                var line = new string(_textCharacters, start, _currentIndex - start);
+                _currentIndex += NewLineEnding.Length;
+
+                if (_currentIndex == _textCharacters.Length)
+                {
+                    _currentIndex++;
+                }
+
+                LineNumber++;
+                return line;
             }
-            return line;
+        }
+
+        private bool StartWith(char[] textCharacters, int currentIndex, string newLineCharacters)
+        {
+            for (var i = 0; i < newLineCharacters.Length; i++)
+            {
+                if (currentIndex + i == textCharacters.Length)
+                {
+                    return false;
+                }
+                if (textCharacters[currentIndex + i] != newLineCharacters[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public bool MoveNext()
@@ -149,7 +163,7 @@ namespace NPreprocessor
             ReadLine();
             if (CurrentLine != null)
             {
-                _lineReader = new LineReader(current + Environment.NewLine + CurrentLine);
+                _lineReader = new LineReader(current + NewLineEnding + CurrentLine);
                 return true;
             }
             return false;

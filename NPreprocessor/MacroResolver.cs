@@ -26,7 +26,7 @@ namespace NPreprocessor
 
         public List<string> Do(ITextReader txtReader)
         {
-            return Do(txtReader, new State());
+            return Do(txtReader, new State() {  NewLineEnding = txtReader.NewLineEnding });
         }
 
         public List<string> Do(ITextReader txtReader, State state)
@@ -35,6 +35,13 @@ namespace NPreprocessor
             var currentLine = txtReader.Current;
             if (currentLine == null) return null;
             var result = new List<string>();
+
+            if (txtReader.Current.FullLine.StartsWith("//"))
+            {
+                result.Add(txtReader.Current.FullLine);
+                txtReader.Current.Finish();
+                return result;
+            }
 
             while (txtReader.Current?.Remainder != null && txtReader.Current?.Remainder != String.Empty)
             {
@@ -118,7 +125,7 @@ namespace NPreprocessor
                     return true;
                 }
 
-                var cascadeTextReader = new TextReader(string.Join(Environment.NewLine, lines));
+                var cascadeTextReader = new TextReader(string.Join(state.NewLineEnding, lines), state.NewLineEnding);
                 var cascadeResult = DoAll(cascadeTextReader, new State() { Stack = new Stack<IMacro>(state.Stack), Definitions = state.Definitions });
 
                 AddToResult(result, cascadeResult, state.CreateNewLine);

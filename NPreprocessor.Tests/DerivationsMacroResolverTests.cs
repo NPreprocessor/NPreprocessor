@@ -1,4 +1,5 @@
 using NPreprocessor.Macros.Derivations;
+using System;
 using System.Linq;
 using Xunit;
 
@@ -8,7 +9,7 @@ namespace NPreprocessor.Tests
     {
         private ITextReader CreateLineReader(string txt)
         {
-            return new TextReader(txt);
+            return new TextReader(txt, Environment.NewLine);
         }
 
         [Fact]
@@ -104,34 +105,6 @@ name1");
 
             Assert.Equal(string.Empty, macroResolver.Do(reader)[0]);
             Assert.Equal("Hello. (John)", macroResolver.Do(reader).Single());
-        }
-
-        [Fact]
-        public void DefineAndInclude()
-        {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define", "`"));
-            macroResolver.Macros.Insert(0, new ExpandedIncludeMacro("`include"));
-
-            var reader = CreateLineReader("`define data Hello.\r\n`include \"`data.txt'\"");
-
-            Assert.Equal(string.Empty, macroResolver.Do(reader)[0]);
-            var result = macroResolver.Do(reader);
-            Assert.Equal("File with Hello.", result.Single());
-        }
-
-        [Fact]
-        public void DefineNameAndInclude()
-        {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define", "`"));
-            macroResolver.Macros.Insert(0, new ExpandedIncludeMacro("`include"));
-
-            var reader = CreateLineReader("`define name data\r\n`include \"`name.txt\"");
-
-            var results = macroResolver.DoAll(reader);
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("File with `data", results[1]);
         }
 
         [Fact]

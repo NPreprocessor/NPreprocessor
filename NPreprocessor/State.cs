@@ -1,4 +1,5 @@
 ﻿using NPreprocessor.Macros;
+using System;
 using System.Collections.Generic;
 
 namespace NPreprocessor
@@ -8,6 +9,8 @@ namespace NPreprocessor
         public int MergePoints { get; set; } = 0;
 
         public bool CreateNewLine => MergePoints == 0;
+
+        public string NewLineEnding { get; set; } = Environment.NewLine;
 
         public Stack<IMacro> Stack { get; set; } = new Stack<IMacro>();
 

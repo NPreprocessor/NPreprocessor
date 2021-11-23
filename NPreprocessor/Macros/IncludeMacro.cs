@@ -24,11 +24,7 @@ namespace NPreprocessor.Macros
             txtReader.Current.Consume(call.length);
             var args = call.args;
             var fileNameExpression = args[0];
-
-            var expressionTxtReader = new TextReader(fileNameExpression);
-            expressionTxtReader.MoveNext();
-            var results = DefineMacro.Invoke(expressionTxtReader, state);
-            var fileName = MacroString.Trim(results.result[0]);
+            var fileName = MacroString.Trim(fileNameExpression);
             string fileContent = Provider(fileName);
             return (new List<string>() { fileContent }, true);
         }

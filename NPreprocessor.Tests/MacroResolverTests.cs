@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Xunit;
 
@@ -7,7 +8,7 @@ namespace NPreprocessor.Tests
     {
         private ITextReader CreateTextReader(string txt)
         {
-            return new TextReader(txt);
+            return new TextReader(txt, Environment.NewLine);
         }
 
         [Fact]

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace NPreprocessor.Macros
@@ -33,7 +34,7 @@ namespace NPreprocessor.Macros
             }
             else
             {
-                var expressionTxtReader = new TextReader(expression);
+                var expressionTxtReader = new TextReader(expression, state.NewLineEnding);
                 expressionTxtReader.MoveNext();
                 var results = DefineMacro.Invoke(expressionTxtReader, state);
 
