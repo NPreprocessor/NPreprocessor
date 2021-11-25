@@ -8,22 +8,24 @@ namespace NPreprocessor.Macros.Derivations
     {
         public ExpandedIfDefMacro(string ifPrefix, string elsePrefix, string endIfPrefix)
         {
-            Prefix = ifPrefix;
+            Pattern = ifPrefix;
             ElsePrefix = elsePrefix;
             EndIfPrefix = endIfPrefix;
         }
 
-        public string Prefix { get; set; }
+        public string Pattern { get; set; }
 
         public string ElsePrefix { get; }
 
         public string EndIfPrefix { get; }
 
-        public (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state)
+        public bool AreArgumentsRequired => false;
+
+        public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
         {
             var currentLine = txtReader.Current.Remainder;
             txtReader.Current.Finish();
-            var prefixLength = Prefix.Length;
+            var prefixLength = Pattern.Length;
             var name = currentLine.Substring(prefixLength).Trim().Trim('\"');
 
             var @trueLines = new List<string>();
@@ -48,7 +50,7 @@ namespace NPreprocessor.Macros.Derivations
                         continue;
                     }
 
-                    if (txtReader.Current.Remainder.StartsWith(Prefix))
+                    if (txtReader.Current.Remainder.StartsWith(Pattern))
                     {
                         count++;
                     }
@@ -77,17 +79,7 @@ namespace NPreprocessor.Macros.Derivations
 
             string m4Line = $"ifdef(`{name}', `{MacroString.Escape(string.Join(Environment.NewLine, trueLines))}', `{MacroString.Escape(string.Join(Environment.NewLine, falseLines))}')";
 
-            return (new List<string> { m4Line }, true);
-        }
-
-        public bool CanBeUsed(ITextReader txtReader, bool atStart)
-        {
-            if (atStart)
-            {
-                return Regex.IsMatch(txtReader.Current.Remainder, $"^{Prefix}\b");
-            }
-
-            return Regex.IsMatch(txtReader.Current.Remainder, $@"{Prefix}");
+            return (new List<string> { m4Line }, false);
         }
     }
 }

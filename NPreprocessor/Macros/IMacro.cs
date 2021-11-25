@@ -4,8 +4,15 @@ namespace NPreprocessor.Macros
 {
     public interface IMacro
     {
-        bool CanBeUsed(ITextReader reader, bool atStart);
+        string Pattern { get; }
 
-        (List<string> result, bool invoked) Invoke(ITextReader reader, State state);
+        bool AreArgumentsRequired { get; }
+
+        (List<string> result, bool finished) Invoke(ITextReader reader, State state);
+    }
+
+    public interface IDynamicMacro : IMacro
+    {
+        bool CanBeInvoked(ITextReader reader, State state);
     }
 }

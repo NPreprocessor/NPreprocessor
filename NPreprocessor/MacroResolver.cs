@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace NPreprocessor
 {
@@ -11,45 +12,63 @@ namespace NPreprocessor
 
         public MacroResolver()
         {
-            var defineMacro = new DefineMacro();
-            _macros.Add(new UndefineMacro(defineMacro));
-            _macros.Add(defineMacro);
-            _macros.Add(new IfDefMacro(defineMacro));
-            _macros.Add(new IfNDefMacro(defineMacro));
-            _macros.Add(new IncludeMacro(defineMacro));
+            _macros.Add(new LineCommentMacro());
+            _macros.Add(new UndefineMacro());
+            _macros.Add(new DefineMacro());
+            _macros.Add(new DefineResolveMacro());
+            _macros.Add(new IfDefMacro());
+            _macros.Add(new IfNDefMacro());
+            _macros.Add(new IncludeMacro());
             _macros.Add(new DnlMacro());
-            _macros.Add(new IncrMacro(defineMacro));
-            _macros.Add(new DecrMacro(defineMacro));
+            _macros.Add(new IncrMacro());
+            _macros.Add(new DecrMacro());
         }
 
         public List<IMacro> Macros { get => _macros; }
 
-        public List<string> Do(ITextReader txtReader)
+
+        public List<string> Resolve(ITextReader txtReader, State state = null)
         {
-            return Do(txtReader, new State() {  NewLineEnding = txtReader.NewLineEnding });
+            if (state == null)
+            {
+                state = new State();
+            }
+
+            var result = new List<string>();
+            List<string> lastResult = null;
+            do
+            {
+                lastResult = ProcessCurrentLine(txtReader, state);
+                if (lastResult != null)
+                {
+                    AddToResult(result, lastResult, state.MergePoints == 0);
+
+                    if (state.MergePoints > 0)
+                    {
+                        state.MergePoints -= 1;
+                    }
+                }
+            }
+            while (lastResult != null);
+
+            return result;
         }
 
-        public List<string> Do(ITextReader txtReader, State state)
+        private List<string> ProcessCurrentLine(ITextReader txtReader, State state)
         {
             txtReader.MoveNext();
             var currentLine = txtReader.Current;
             if (currentLine == null) return null;
             var result = new List<string>();
 
-            if (txtReader.Current.FullLine.StartsWith("//"))
-            {
-                result.Add(txtReader.Current.FullLine);
-                txtReader.Current.Finish();
-                return result;
-            }
 
             while (txtReader.Current?.Remainder != null && txtReader.Current?.Remainder != String.Empty)
             {
-                var macroToCall = _macros.FirstOrDefault(macro => macro.CanBeUsed(txtReader, true)) ?? _macros.FirstOrDefault(macro => macro.CanBeUsed(txtReader, false));
+                (IMacro macro, int position) macroToCall = FindBestMacroToCall(txtReader, state);
 
-                if (macroToCall != null)
+                if (macroToCall.macro != null)
                 {
-                    if (!ProcessMacro(txtReader, state, result, macroToCall))
+                    if (!ProcessMacro(txtReader, state, result, macroToCall.macro, macroToCall.position))
                     {
                         break;
                     }
@@ -70,51 +89,22 @@ namespace NPreprocessor
             return result;
         }
 
-        public List<string> DoAll(ITextReader txtReader)
-        {
-            return DoAll(txtReader, new State());
-        }
-
-        public List<string> DoAll(ITextReader txtReader, State state)
-        {
-            var result = new List<string>();
-            List<string> lastResult = null;
-            do
-            {
-                lastResult = Do(txtReader, state);
-                if (lastResult != null)
-                {
-                    AddToResult(result, lastResult, state.MergePoints == 0);
-
-                    if (state.MergePoints > 0)
-                    {
-                        state.MergePoints -= 1;
-                    }
-                }
-            }
-            while (lastResult != null);
-
-            return result;
-        }
-
-        private bool ProcessMacro(ITextReader txtReader, State state, List<string> result, IMacro macroToCall)
+        private bool ProcessMacro(ITextReader txtReader, State state, List<string> result, IMacro macroToCall, int position)
         {
             state.Stack.Push(macroToCall);
             var before = txtReader.Current.Remainder;
 
-            var macroResult = macroToCall.Invoke(txtReader, state);
+            var skipped = before.Substring(0, position);
+            txtReader.Current.Consume(position);
 
-            if (!macroResult.invoked)
-            {
-                AddToResult(result, new List<string> { before }, false);
-                state.Stack.Pop();
-                return false;
-            }
+            var macroResult = macroToCall.Invoke(txtReader, state);
 
             var lines = macroResult.result;
 
             if (lines != null && lines.Count() > 0)
             {
+                lines[0] = skipped + lines[0];
+
                 if (lines.Count == 1 && lines[0] == String.Empty)
                 {
                     if (state.CreateNewLine || !result.Any())
@@ -125,10 +115,22 @@ namespace NPreprocessor
                     return true;
                 }
 
-                var cascadeTextReader = new TextReader(string.Join(state.NewLineEnding, lines), state.NewLineEnding);
-                var cascadeResult = DoAll(cascadeTextReader, new State() { Stack = new Stack<IMacro>(state.Stack), Definitions = state.Definitions });
-
-                AddToResult(result, cascadeResult, state.CreateNewLine);
+                if (!macroResult.finished)
+                {
+                    var cascadeTextReader = new TextReader(string.Join(state.NewLineEnding, lines), state.NewLineEnding);
+                    var cascadeResult = Resolve(cascadeTextReader, new State() 
+                    { 
+                        Stack = new Stack<IMacro>(state.Stack), 
+                        Definitions = state.Definitions,
+                        Mappings = state.Mappings,
+                        MappingsParameters = state.MappingsParameters
+                    });
+                    AddToResult(result, cascadeResult, state.CreateNewLine);
+                }
+                else
+                {
+                    AddToResult(result, lines, state.CreateNewLine);
+                }
             }
 
             state.Stack.Pop();
@@ -147,5 +149,47 @@ namespace NPreprocessor
                 result.AddRange(toAdd.Skip(1));
             }
         }
+
+
+        private (IMacro macro, int position) FindBestMacroToCall(ITextReader txtReader, State state)
+        {
+            IMacro bastStartMacro = FindStartingMacro(txtReader);
+            if (bastStartMacro != null)
+            {
+                return (bastStartMacro, 0);
+            }
+
+            var bestMacro = _macros
+                .Where(m => m.Pattern != null)
+                .Select(macro => (macro, Regex.Match(txtReader.Current.Remainder, @"(?:\b|\W|\s)" + "(" + macro.Pattern + ")")))
+                .Where(macroWithMatch => macroWithMatch.Item2.Success)
+                .OrderBy(macroWithMatch => macroWithMatch.Item2.Groups[1].Index)
+                .FirstOrDefault();
+
+            if (bestMacro != default)
+            {
+                return (bestMacro.macro, bestMacro.Item2.Groups[1].Index);
+            }
+
+            // dynamic macros
+            var bestDynamicMacro = _macros
+               .OfType<IDynamicMacro>()
+               .FirstOrDefault(macroWithMatch => macroWithMatch.CanBeInvoked(txtReader, state));
+
+            return (bestDynamicMacro, 0);
+        }
+
+        private IMacro FindStartingMacro(ITextReader txtReader)
+        {
+            foreach (var macro in _macros.Where(m => m.Pattern != null))
+            {
+                if (Regex.IsMatch(txtReader.Current.Remainder, "^" + macro.Pattern))
+                {
+                    return macro;
+                }
+            }
+            return null;
+        }
+
     }
 }

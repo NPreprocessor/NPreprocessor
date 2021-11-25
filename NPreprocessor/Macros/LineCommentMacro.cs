@@ -2,17 +2,18 @@
 
 namespace NPreprocessor.Macros
 {
-    public class DnlMacro : IMacro
+    public class LineCommentMacro : IMacro
     {
-        public string Pattern => "dnl";
+        public string Pattern => "//";
 
         public bool AreArgumentsRequired => false;
 
         public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
         {
+            string comment = txtReader.Current.Remainder;
             txtReader.Current.Finish();
-            state.MergePoints += 2;
-            return (new List<string>() { string.Empty }, true);
+
+            return (new List<string>() { comment }, true);
         }
     }
 }

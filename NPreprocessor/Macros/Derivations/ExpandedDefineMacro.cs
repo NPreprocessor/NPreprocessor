@@ -14,13 +14,15 @@ namespace NPreprocessor.Macros.Derivations
             _method = new Regex(@$"^{prefix}\s+([\$_\w]+)\((.*?)\)\s*(.+)");
             _const = new Regex(@$"^{prefix}\s+([\\@\$\w]+)\s*(.*)");
 
-            Prefix = prefix;
+            Pattern = prefix;
             this.defPrefix = defPrefix;
         }
 
-        public string Prefix { get; set; }
+        public string Pattern { get; set; }
 
-        public (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state)
+        public bool AreArgumentsRequired => false;
+
+        public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
         {
             var line = txtReader.Current.Remainder;
             txtReader.Current.Finish();
@@ -38,25 +40,15 @@ namespace NPreprocessor.Macros.Derivations
                     value = value.Replace($"{arg}", $"${i}");
                 }
 
-                return (new List<string>() { $"define(`{defPrefix}{name}', `{MacroString.Escape(value)}')" }, true);
+                return (new List<string>() { $"define(`{defPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
             }
             else
             {
                 var constMatch = _const.Match(line);
                 var name = constMatch.Groups[1].Value;
                 var value = constMatch.Groups[2].Value;
-                return (new List<string>() { $"define(`{defPrefix}{name}', `{MacroString.Escape(value)}')" }, true);
+                return (new List<string>() { $"define(`{defPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
             }
-        }
-
-        public bool CanBeUsed(ITextReader txtReader, bool atStart)
-        {
-            if (atStart)
-            {
-                return Regex.IsMatch(txtReader.Current.Remainder, $"^{Prefix}\b");
-            }
-
-            return Regex.IsMatch(txtReader.Current.Remainder, $@"{Prefix}");
         }
     }
 }

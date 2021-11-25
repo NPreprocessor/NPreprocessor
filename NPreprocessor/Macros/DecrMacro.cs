@@ -1,26 +1,18 @@
 ﻿using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 namespace NPreprocessor.Macros
 {
     public class DecrMacro : AritimeticMacroBase, IMacro
     {
-        public DecrMacro(DefineMacro defineMacro) : base(defineMacro)
+        public DecrMacro() 
         {
         }
 
-        public string Prefix => "decr";
+        public string Pattern => "decr";
 
-        public bool CanBeUsed(ITextReader reader, bool atStart)
-        {
-            if (atStart)
-            {
-                return Regex.IsMatch(reader.Current.Remainder, @$"^{Prefix}\(");
-            }
-            return Regex.IsMatch(reader.Current.Remainder, $@"\b{Prefix}\(");
-        }
+        public bool AreArgumentsRequired => true;
 
-        public (List<string> result, bool invoked) Invoke(ITextReader reader, State state)
+        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
         {
             return base.Invoke(reader, state, -1);
         }

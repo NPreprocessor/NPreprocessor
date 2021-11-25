@@ -17,7 +17,7 @@ namespace NPreprocessor.Tests
         {
             var macroResolver = new MacroResolver();
             macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
-            var result = macroResolver.Do(CreateLineReader("`define name1"));
+            var result = macroResolver.Resolve(CreateLineReader("`define name1"));
 
             Assert.Single(result);
             Assert.Equal(string.Empty, result[0]);
@@ -35,7 +35,7 @@ namespace NPreprocessor.Tests
 `op(`op(3,2),`x)
 ");
 
-            var results = macroResolver.DoAll(reader);
+            var results = macroResolver.Resolve(reader);
             Assert.Equal(3, results.Count);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal(string.Empty, results[1]);
@@ -49,9 +49,10 @@ namespace NPreprocessor.Tests
             macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader("`define name1 Hello.\r\nname1");
+            var results = macroResolver.Resolve(reader);
 
-            Assert.Equal(string.Empty, macroResolver.Do(reader)[0]);
-            Assert.Equal("Hello.", macroResolver.Do(reader).Single());
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal("Hello.", results[1]);
         }
 
         [Fact]
@@ -62,7 +63,7 @@ namespace NPreprocessor.Tests
             macroResolver.Macros.Insert(0, new ExpandedUndefineMacro("`undef", "`"));
 
             var reader = CreateLineReader("`define name1 Hello.\r\n`undef name1\r\nname1");
-            var results = macroResolver.DoAll(reader);
+            var results = macroResolver.Resolve(reader);
 
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal(string.Empty, results[1]);
@@ -76,9 +77,10 @@ namespace NPreprocessor.Tests
             macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define", "`"));
 
             var reader = CreateLineReader("`define name1 Hello.\r\n`name1");
+            var results = macroResolver.Resolve(reader);
 
-            Assert.Equal(string.Empty, macroResolver.Do(reader)[0]);
-            Assert.Equal("Hello.", macroResolver.Do(reader).Single());
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal("Hello.", results[1]);
         }
 
         [Fact]
@@ -90,9 +92,10 @@ namespace NPreprocessor.Tests
             var reader = CreateLineReader(@"`define name1 Hello \
 Hello.
 name1");
+            var results = macroResolver.Resolve(reader);
 
-            Assert.Equal(string.Empty, macroResolver.Do(reader)[0]);
-            Assert.Equal(@"Hello Hello.", macroResolver.Do(reader).Single());
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal(@"Hello Hello.", results[1]);
         }
 
 
@@ -102,9 +105,10 @@ name1");
             var macroResolver = new MacroResolver();
             macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
             var reader = CreateLineReader("`define name1(arg) Hello. (arg)\r\nname1(John)");
+            var results = macroResolver.Resolve(reader);
 
-            Assert.Equal(string.Empty, macroResolver.Do(reader)[0]);
-            Assert.Equal("Hello. (John)", macroResolver.Do(reader).Single());
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal("Hello. (John)", results[1]);
         }
 
         [Fact]
@@ -114,7 +118,7 @@ name1");
             macroResolver.Macros.Insert(0, new ExpandedIncludeMacro("`include"));
 
             var reader = CreateLineReader("`include \"data.txt\"");
-            var result = macroResolver.Do(reader);
+            var result = macroResolver.Resolve(reader);
             Assert.Equal("File with `data", result.Single());
         }
 
@@ -130,7 +134,7 @@ name1");
     a
 `endif");
 
-            var results = macroResolver.DoAll(reader);
+            var results = macroResolver.Resolve(reader);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    a", results[1]);
         }
@@ -147,7 +151,7 @@ name1");
     a
 `endif");
 
-            var results = macroResolver.DoAll(reader);
+            var results = macroResolver.Resolve(reader);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    a", results[1]);
         }
@@ -167,7 +171,7 @@ name1");
     b
 `endif");
 
-            var results = macroResolver.DoAll(reader);
+            var results = macroResolver.Resolve(reader);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    b", results[1]);
         }
@@ -189,7 +193,7 @@ name1");
     b
 `endif");
 
-            var results = macroResolver.DoAll(reader);
+            var results = macroResolver.Resolve(reader);
             Assert.Equal(3, results.Count);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    a1", results[1]);
@@ -215,7 +219,7 @@ name1");
 `endif
 `endif");
 
-            var results = macroResolver.DoAll(reader);
+            var results = macroResolver.Resolve(reader);
             Assert.Equal(4, results.Count);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    a1", results[1]);
@@ -243,7 +247,7 @@ name1");
 `endif
 `endif");
 
-            var results = macroResolver.DoAll(reader);
+            var results = macroResolver.Resolve(reader);
             Assert.Equal(6, results.Count);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    a1", results[1]);

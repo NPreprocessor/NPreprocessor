@@ -7,31 +7,22 @@ namespace NPreprocessor.Macros.Derivations
     {
         public ExpandedIncludeMacro(string prefixName)
         {
-            Prefix = prefixName;
+            Pattern = prefixName;
         }
 
-        public string Prefix { get; set; }
+        public string Pattern { get; set; }
 
-        public (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state)
+        public bool AreArgumentsRequired => false;
+
+        public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
         {
             var line = txtReader.Current.Remainder;
-            var prefixLength = Prefix.Length;
+            var prefixLength = Pattern.Length;
             var fileName = MacroString.Trim(line.Substring(prefixLength).Trim().Trim('\"'));
             txtReader.Current.Finish();
 
             var m4Line = $"include(`{fileName}')";
-            return (new List<string>() { m4Line }, true);
-        }
-
-
-        public bool CanBeUsed(ITextReader txtReader, bool atStart)
-        {
-            if (atStart)
-            {
-                return Regex.IsMatch(txtReader.Current.Remainder, $"^{Prefix}\b");
-            }
-
-            return Regex.IsMatch(txtReader.Current.Remainder, $@"{Prefix}");
+            return (new List<string>() { m4Line }, false);
         }
     }
 }

@@ -1,45 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
 
 namespace NPreprocessor.Macros
 {
     public class IfDefMacro : IMacro
     {
-        private readonly DefineMacro defineMacro;
-
-        public IfDefMacro(DefineMacro defineMacro)
+        public IfDefMacro()
         {
-            this.defineMacro = defineMacro;
         }
 
-        public string Prefix => "ifdef";
+        public string Pattern => "ifdef";
 
-        public bool CanBeUsed(ITextReader txtReader, bool atStart)
-        {
-            if (atStart)
-            {
-                return Regex.IsMatch(txtReader.Current.Remainder, $"^{Prefix}");
-            }
-            return Regex.IsMatch(txtReader.Current.Remainder, $@"\b{Prefix}");
-        }
+        public bool AreArgumentsRequired => true;
 
-        public (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state)
+        public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
         {
             var call = CallParser.GetInvocation(txtReader, 0, state.Definitions);
             txtReader.Current.Consume(call.length);
             var args = call.args;
             var name = MacroString.Trim(args[0]);
 
-            if (defineMacro.IsDefined(name))
+            if (state.Definitions.Contains(name))
             {
-                return (MacroString.GetLines(args[1]), true);
+                return (MacroString.GetLines(args[1]), false);
             }
             else
             {
                 if (args.Length == 3)
                 {
-                    return (MacroString.GetLines(args[2]), true);
+                    return (MacroString.GetLines(args[2]), false);
                 }
                 else
                 {

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace NPreprocessor.Macros
 {
@@ -8,12 +6,9 @@ namespace NPreprocessor.Macros
     {
         private Dictionary<string, double> _lastResults = new Dictionary<string, double>();
 
-        public AritimeticMacroBase(DefineMacro defineMacro)
+        public AritimeticMacroBase()
         {
-            DefineMacro = defineMacro;
         }
-
-        public DefineMacro DefineMacro { get; }
 
         protected (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state, int modification)
         {
@@ -28,29 +23,17 @@ namespace NPreprocessor.Macros
             var expression = MacroString.Trim(args[0]);
 
             double result = 0;
-            if (double.TryParse(expression, out var parseResult))
+            if (double.TryParse(expression, out var exp1))
             {
-                result = parseResult + modification;
+                result = exp1 + modification;
             }
             else
             {
-                var expressionTxtReader = new TextReader(expression, state.NewLineEnding);
-                expressionTxtReader.MoveNext();
-                var results = DefineMacro.Invoke(expressionTxtReader, state);
-
-                if (results.invoked)
+                if (state.Mappings.ContainsKey(expression))
                 {
-                    var line = results.result.First();
-                    if (double.TryParse(line, out var parseResult2))
+                    if (double.TryParse(state.Mappings[expression], out var exp))
                     {
-                        result = parseResult2 + modification;
-                    }
-                    else
-                    {
-                        if (_lastResults.ContainsKey(expression))
-                        {
-                            result = _lastResults[expression] + modification;
-                        }
+                        result = exp + modification;
                     }
                 }
             }
