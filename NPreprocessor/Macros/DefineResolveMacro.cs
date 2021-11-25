@@ -15,14 +15,23 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => false;
 
-        public bool CanBeInvoked(ITextReader txtReader, State state)
+        public bool CanBeInvoked(ITextReader txtReader, State state, out int index)
         {
             string result = txtReader.Current.Remainder;
-            return state.Mappings.Keys
+            var match = state.Mappings.Keys
                 .Select(key => Regex.Match(result, GetRegex(key)))
                 .Where(s => s.Success)
                 .Where(s => !IsInsideString(result, s.Groups[1].Index, state))
-                .Any();
+                .FirstOrDefault();
+
+            if (match != null)
+            {
+                index = match.Groups[1].Index;
+                return true;
+            }
+
+            index = -1;
+            return false;
         }
 
         public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)

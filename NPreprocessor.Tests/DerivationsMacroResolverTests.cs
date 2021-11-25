@@ -56,6 +56,19 @@ namespace NPreprocessor.Tests
         }
 
         [Fact]
+        public void DefineResolves2()
+        {
+            var macroResolver = new MacroResolver();
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define", "`"));
+
+            var reader = CreateLineReader("`define NOTGIVEN 123.4\r\n val=`NOTGIVEN; // Coeff");
+            var results = macroResolver.Resolve(reader);
+
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal(" val=123.4; // Coeff", results[1]);
+        }
+
+        [Fact]
         public void Undefine()
         {
             var macroResolver = new MacroResolver();

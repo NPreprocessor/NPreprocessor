@@ -153,39 +153,49 @@ namespace NPreprocessor
 
         private (IMacro macro, int position) FindBestMacroToCall(ITextReader txtReader, State state)
         {
-            IMacro bastStartMacro = FindStartingMacro(txtReader);
+            IMacro bastStartMacro = FindStartingMacro(txtReader, state);
             if (bastStartMacro != null)
             {
                 return (bastStartMacro, 0);
             }
 
-            var bestMacro = _macros
+            var bestMacros = _macros
                 .Where(m => m.Pattern != null)
                 .Select(macro => (macro, Regex.Match(txtReader.Current.Remainder, @"(?:\b|\W|\s)" + "(" + macro.Pattern + ")")))
                 .Where(macroWithMatch => macroWithMatch.Item2.Success)
-                .OrderBy(macroWithMatch => macroWithMatch.Item2.Groups[1].Index)
-                .FirstOrDefault();
+                .Select(m => (m.macro, m.Item2.Groups[1].Index))
+                .OrderBy(m => m.Index)
+                .Take(1).ToList();
 
-            if (bestMacro != default)
+            foreach (IDynamicMacro dynamicMacro in _macros.OfType<IDynamicMacro>())
             {
-                return (bestMacro.macro, bestMacro.Item2.Groups[1].Index);
+                if (dynamicMacro.CanBeInvoked(txtReader, state, out var index))
+                {
+                    bestMacros.Add((dynamicMacro, index));
+                }
             }
 
-            // dynamic macros
-            var bestDynamicMacro = _macros
-               .OfType<IDynamicMacro>()
-               .FirstOrDefault(macroWithMatch => macroWithMatch.CanBeInvoked(txtReader, state));
-
-            return (bestDynamicMacro, 0);
+            return bestMacros.OrderBy(m => m.Index).FirstOrDefault();
         }
 
-        private IMacro FindStartingMacro(ITextReader txtReader)
+        private IMacro FindStartingMacro(ITextReader txtReader, State state)
         {
             foreach (var macro in _macros.Where(m => m.Pattern != null))
             {
                 if (Regex.IsMatch(txtReader.Current.Remainder, "^" + macro.Pattern))
                 {
                     return macro;
+                }
+            }
+
+            foreach (IDynamicMacro dynamicMacro in _macros.OfType<IDynamicMacro>())
+            {
+                if (dynamicMacro.CanBeInvoked(txtReader, state, out var index))
+                {
+                    if (index == 0)
+                    {
+                        return dynamicMacro;
+                    }
                 }
             }
             return null;

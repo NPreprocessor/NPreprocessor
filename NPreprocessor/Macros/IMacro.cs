@@ -13,6 +13,6 @@ namespace NPreprocessor.Macros
 
     public interface IDynamicMacro : IMacro
     {
-        bool CanBeInvoked(ITextReader reader, State state);
+        bool CanBeInvoked(ITextReader reader, State state, out int index);
     }
 }
