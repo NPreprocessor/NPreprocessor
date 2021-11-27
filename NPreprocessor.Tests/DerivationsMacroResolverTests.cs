@@ -1,5 +1,6 @@
 using NPreprocessor.Macros.Derivations;
 using System;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -27,7 +28,7 @@ namespace NPreprocessor.Tests
         public void DefineMultilineWithArguments()
         {
             var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define", "`"));
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define x 111.345
 `define op(a,b) (a) \
@@ -35,7 +36,7 @@ namespace NPreprocessor.Tests
 `op(`op(3,2),`x)
 ");
 
-            var results = macroResolver.Resolve(reader);
+            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`"});
             Assert.Equal(3, results.Count);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal(string.Empty, results[1]);
@@ -59,10 +60,10 @@ namespace NPreprocessor.Tests
         public void DefineResolves2()
         {
             var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define", "`"));
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader("`define NOTGIVEN 123.4\r\n val=`NOTGIVEN; // Coeff");
-            var results = macroResolver.Resolve(reader);
+            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
 
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal(" val=123.4; // Coeff", results[1]);
@@ -72,11 +73,11 @@ namespace NPreprocessor.Tests
         public void Undefine()
         {
             var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define", "`"));
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
             macroResolver.Macros.Insert(0, new ExpandedUndefineMacro("`undef", "`"));
 
             var reader = CreateLineReader("`define name1 Hello.\r\n`undef name1\r\nname1");
-            var results = macroResolver.Resolve(reader);
+            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
 
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal(string.Empty, results[1]);
@@ -87,10 +88,10 @@ namespace NPreprocessor.Tests
         public void DefineResolvesWithPrefix()
         {
             var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define", "`"));
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader("`define name1 Hello.\r\n`name1");
-            var results = macroResolver.Resolve(reader);
+            var results = macroResolver.Resolve(reader, new State {  DefinitionPrefix = "`"});
 
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("Hello.", results[1]);
@@ -269,5 +270,25 @@ name1");
             Assert.Equal("    a2", results[4]);
             Assert.Equal("    a3", results[5]);
         }
+
+        [Fact]
+        public void IfDefCase6()
+        {
+            var macroResolver = new MacroResolver();
+            macroResolver.Macros.Insert(0, new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+
+            var reader = CreateLineReader(@"`define x
+    `ifdef x  
+    a
+    `endif
+end");
+
+            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal("        a", results[1]);
+            Assert.Equal("end", results[2]);
+        }
+
     }
 }

@@ -161,7 +161,7 @@ namespace NPreprocessor
 
             var bestMacros = _macros
                 .Where(m => m.Pattern != null)
-                .Select(macro => (macro, Regex.Match(txtReader.Current.Remainder, @"(?:\b|\W|\s)" + "(" + macro.Pattern + ")")))
+                .Select(macro => (macro, Regex.Match(txtReader.Current.Remainder, @"(?:\b|\W|\s)" + "(" + CreatePatternForMacro(macro) + ")")))
                 .Where(macroWithMatch => macroWithMatch.Item2.Success)
                 .Select(m => (m.macro, m.Item2.Groups[1].Index))
                 .OrderBy(m => m.Index)
@@ -182,7 +182,7 @@ namespace NPreprocessor
         {
             foreach (var macro in _macros.Where(m => m.Pattern != null))
             {
-                if (Regex.IsMatch(txtReader.Current.Remainder, "^" + macro.Pattern))
+                if (Regex.IsMatch(txtReader.Current.Remainder, "^" + CreatePatternForMacro(macro)))
                 {
                     return macro;
                 }
@@ -201,5 +201,13 @@ namespace NPreprocessor
             return null;
         }
 
+        private static string CreatePatternForMacro(IMacro macro)
+        {
+            if (macro.AreArgumentsRequired)
+            {
+                return macro.Pattern + @"\(.*";
+            }
+            return macro.Pattern;
+        }
     }
 }

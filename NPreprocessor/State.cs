@@ -1,7 +1,6 @@
 ﻿using NPreprocessor.Macros;
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 namespace NPreprocessor
 {
@@ -16,6 +15,8 @@ namespace NPreprocessor
         public Dictionary<string, bool> MappingsParameters { get; set; } = new Dictionary<string, bool>();
         
         public HashSet<string> Definitions { get; set; } = new HashSet<string>();
+
+        public string DefinitionPrefix { get; set; } = string.Empty;
 
         public int MergePoints { get; set; } = 0;
 

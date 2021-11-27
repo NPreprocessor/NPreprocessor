@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -10,6 +11,7 @@ namespace NPreprocessor.Tests
         {
             return new TextReader(txt, Environment.NewLine);
         }
+
 
         //[Fact]
         public void VariableScenario()

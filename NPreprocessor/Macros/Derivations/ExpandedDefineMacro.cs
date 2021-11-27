@@ -5,17 +5,15 @@ namespace NPreprocessor.Macros.Derivations
 {
     public class ExpandedDefineMacro : IMacro
     {
-        private readonly string defPrefix;
         private Regex _method;
         private Regex _const;
 
-        public ExpandedDefineMacro(string prefix, string defPrefix = "")
+        public ExpandedDefineMacro(string prefix)
         {
             _method = new Regex(@$"^{prefix}\s+([\$_\w]+)\((.*?)\)\s*(.+)");
             _const = new Regex(@$"^{prefix}\s+([\\@\$\w]+)\s*(.*)");
 
             Pattern = prefix;
-            this.defPrefix = defPrefix;
         }
 
         public string Pattern { get; set; }
@@ -40,14 +38,14 @@ namespace NPreprocessor.Macros.Derivations
                     value = value.Replace($"{arg}", $"${i}");
                 }
 
-                return (new List<string>() { $"define(`{defPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
+                return (new List<string>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
             }
             else
             {
                 var constMatch = _const.Match(line);
                 var name = constMatch.Groups[1].Value;
                 var value = constMatch.Groups[2].Value;
-                return (new List<string>() { $"define(`{defPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
+                return (new List<string>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
             }
         }
     }

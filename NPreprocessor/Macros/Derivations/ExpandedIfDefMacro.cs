@@ -6,11 +6,14 @@ namespace NPreprocessor.Macros.Derivations
 {
     public class ExpandedIfDefMacro : IMacro
     {
-        public ExpandedIfDefMacro(string ifPrefix, string elsePrefix, string endIfPrefix)
+        private readonly bool invert;
+
+        public ExpandedIfDefMacro(string ifPrefix, string elsePrefix, string endIfPrefix, bool invert = false)
         {
             Pattern = ifPrefix;
             ElsePrefix = elsePrefix;
             EndIfPrefix = endIfPrefix;
+            this.invert = invert;
         }
 
         public string Pattern { get; set; }
@@ -26,7 +29,7 @@ namespace NPreprocessor.Macros.Derivations
             var currentLine = txtReader.Current.Remainder;
             txtReader.Current.Finish();
             var prefixLength = Pattern.Length;
-            var name = currentLine.Substring(prefixLength).Trim().Trim('\"');
+            var name = currentLine.Substring(prefixLength).Trim();
 
             var @trueLines = new List<string>();
             var @falseLines = new List<string>();
@@ -44,41 +47,53 @@ namespace NPreprocessor.Macros.Derivations
                 }
                 else
                 {
-                    if (mode == 1 && txtReader.Current.Remainder.StartsWith(ElsePrefix))
+                    string line = txtReader.Current.Remainder.TrimStart();
+                    string lineNotTrimmed = txtReader.Current.Remainder;
+
+                    if (mode == 1 && line.StartsWith(ElsePrefix))
                     {
                         mode = 2;
                         continue;
                     }
 
-                    if (txtReader.Current.Remainder.StartsWith(Pattern))
+                    if (line.StartsWith(Pattern))
                     {
                         count++;
                     }
 
-                    if (txtReader.Current.Remainder.StartsWith(EndIfPrefix))
+                    if (line.StartsWith(EndIfPrefix))
                     {
                         count--;
                         if (count == 0)
                         {
-                            txtReader.Current.Consume(EndIfPrefix.Length);
+                            txtReader.Current.Consume(lineNotTrimmed.Length);
                             continue;
                         }
                     }
 
                     if (mode == 1)
                     {
-                        trueLines.Add(txtReader.Current.Remainder);
+                        trueLines.Add(lineNotTrimmed);
                     }
 
                     if (mode == 2)
                     {
-                        falseLines.Add(txtReader.Current.Remainder);
+                        falseLines.Add(lineNotTrimmed);
                     }
                 }
             }
-
-            string m4Line = $"ifdef(`{name}', `{MacroString.Escape(string.Join(Environment.NewLine, trueLines))}', `{MacroString.Escape(string.Join(Environment.NewLine, falseLines))}')";
-
+            string @true = MacroString.Escape(string.Join(Environment.NewLine, trueLines));
+            string @false = MacroString.Escape(string.Join(Environment.NewLine, falseLines));
+            
+            string m4Line;
+            if (!invert)
+            {
+                m4Line = $"ifdef(`{state.DefinitionPrefix}{name}', `{@true}', `{@false}')";
+            }
+            else
+            {
+                m4Line = $"ifndef(`{state.DefinitionPrefix}{name}', `{@true}', `{@false}')";
+            }
             return (new List<string> { m4Line }, false);
         }
     }
