@@ -4,8 +4,6 @@ namespace NPreprocessor.Macros
 {
     public class AritimeticMacroBase
     {
-        private Dictionary<string, double> _lastResults = new Dictionary<string, double>();
-
         public AritimeticMacroBase()
         {
         }
@@ -29,17 +27,12 @@ namespace NPreprocessor.Macros
             }
             else
             {
-                if (state.Mappings.ContainsKey(expression))
+                if (state.Mappings.ContainsKey(expression) && double.TryParse(state.Mappings[expression], out var exp))
                 {
-                    if (double.TryParse(state.Mappings[expression], out var exp))
-                    {
-                        result = exp + modification;
-                    }
+                    result = exp + modification;
                 }
             }
             txtReader.Current.Consume(call.length);
-
-            _lastResults[expression] = result;
 
             return (new List<string> { @result.ToString() }, true);
         }

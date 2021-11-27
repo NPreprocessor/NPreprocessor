@@ -14,9 +14,9 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => true;
 
-        public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
+        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
         {
-            var call = CallParser.GetInvocation(txtReader, 0, state.Definitions);
+            var call = CallParser.GetInvocation(reader, 0, state.Definitions);
 
             if (call.name == null)
             {
@@ -29,7 +29,7 @@ namespace NPreprocessor.Macros
             {
                 throw new System.Exception("Invalid def");
             }
-            txtReader.Current.Consume(call.length);
+            reader.Current.Consume(call.length);
 
             var name = MacroString.Trim(args[0]);
 

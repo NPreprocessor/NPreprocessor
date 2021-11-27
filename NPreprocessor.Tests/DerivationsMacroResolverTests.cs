@@ -8,7 +8,7 @@ namespace NPreprocessor.Tests
 {
     public class DerivationsMacroResolverTests
     {
-        private ITextReader CreateLineReader(string txt)
+        private static ITextReader CreateLineReader(string txt)
         {
             return new TextReader(txt, Environment.NewLine);
         }
@@ -74,7 +74,7 @@ namespace NPreprocessor.Tests
         {
             var macroResolver = new MacroResolver();
             macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
-            macroResolver.Macros.Insert(0, new ExpandedUndefineMacro("`undef", "`"));
+            macroResolver.Macros.Insert(0, new ExpandedUndefineMacro("`undef"));
 
             var reader = CreateLineReader("`define name1 Hello.\r\n`undef name1\r\nname1");
             var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });

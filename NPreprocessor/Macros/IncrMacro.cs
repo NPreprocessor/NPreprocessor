@@ -13,9 +13,9 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => true;
 
-        public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
+        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
         {
-            return base.Invoke(txtReader, state, 1);
+            return base.Invoke(reader, state, 1);
         }
     }
 }

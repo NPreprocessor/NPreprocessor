@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace NPreprocessor
 {
-    public class CallParser
+    public static class CallParser
     {
         private static Regex _macroCallPrefix = new Regex(@"([`\$\w]+)\(", RegexOptions.Singleline);
 

@@ -15,14 +15,13 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => false;
 
-        public bool CanBeInvoked(ITextReader txtReader, State state, out int index)
+        public bool CanBeInvoked(ITextReader reader, State state, out int index)
         {
-            string result = txtReader.Current.Remainder;
+            string result = reader.Current.Remainder;
             var match = state.Mappings.Keys
                 .Select(key => Regex.Match(result, GetRegex(key)))
                 .Where(s => s.Success)
-                .Where(s => !IsInsideString(result, s.Groups[1].Index, state))
-                .FirstOrDefault();
+                .FirstOrDefault(s => !IsInsideString(result, s.Groups[1].Index, state));
 
             if (match != null)
             {
@@ -34,16 +33,16 @@ namespace NPreprocessor.Macros
             return false;
         }
 
-        public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
+        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
         {
             bool resolved = false;
-            string initial = txtReader.Current.Remainder;
-            string result = txtReader.Current.Remainder;
+            string initial = reader.Current.Remainder;
+            string result = reader.Current.Remainder;
 
             var item = state.Mappings.Keys
                 .Select(key => (key, Regex.Match(result, GetRegex(key))))
                 .Where(match => match.Item2.Success && !IsInsideString(result, match.Item2.Groups[1].Index, state))
-                .OrderBy(i => i.Item2.Index).ToList()
+                .OrderBy(i => i.Item2.Index)
                 .FirstOrDefault();
 
             if (item != default)
@@ -57,7 +56,7 @@ namespace NPreprocessor.Macros
                 {
                     var remainder = result.Substring(index);
 
-                    var call = CallParser.GetInvocation(txtReader, index, state.Definitions);
+                    var call = CallParser.GetInvocation(reader, index, state.Definitions);
 
                     replacement = replacement.Replace($"$0", key);
 
@@ -97,7 +96,7 @@ namespace NPreprocessor.Macros
 
             if (resolved)
             {
-                txtReader.Current.Consume(initial.Length);
+                reader.Current.Consume(initial.Length);
             }
 
             return (new List<string>(result.Split(Environment.NewLine)), !resolved);
@@ -108,7 +107,7 @@ namespace NPreprocessor.Macros
             return @"(?:^|\b|\s|\W)(" + Regex.Escape(key) + @")(?:\b|\s|\W)";
         }
 
-        private bool IsInsideString(string result, int index, State state)
+        private static bool IsInsideString(string result, int index, State state)
         {
             var lastStartPos = result.Substring(0, index).LastIndexOf('`');
 

@@ -5,8 +5,8 @@ namespace NPreprocessor.Macros.Derivations
 {
     public class ExpandedDefineMacro : IMacro
     {
-        private Regex _method;
-        private Regex _const;
+        private readonly Regex _method;
+        private readonly Regex _const;
 
         public ExpandedDefineMacro(string prefix)
         {

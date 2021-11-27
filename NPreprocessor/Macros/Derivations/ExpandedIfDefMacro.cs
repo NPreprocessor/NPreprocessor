@@ -24,10 +24,10 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
-        public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
+        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
         {
-            var currentLine = txtReader.Current.Remainder;
-            txtReader.Current.Finish();
+            var currentLine = reader.Current.Remainder;
+            reader.Current.Finish();
             var prefixLength = Pattern.Length;
             var name = currentLine.Substring(prefixLength).Trim();
 
@@ -39,16 +39,16 @@ namespace NPreprocessor.Macros.Derivations
 
             while (count != 0)
             {
-                txtReader.MoveNext();
+                reader.MoveNext();
 
-                if (txtReader.Current == null)
+                if (reader.Current == null)
                 {
                     return (null, false);
                 }
                 else
                 {
-                    string line = txtReader.Current.Remainder.TrimStart();
-                    string lineNotTrimmed = txtReader.Current.Remainder;
+                    string line = reader.Current.Remainder.TrimStart();
+                    string lineNotTrimmed = reader.Current.Remainder;
 
                     if (mode == 1 && line.StartsWith(ElsePrefix))
                     {
@@ -66,7 +66,7 @@ namespace NPreprocessor.Macros.Derivations
                         count--;
                         if (count == 0)
                         {
-                            txtReader.Current.Consume(lineNotTrimmed.Length);
+                            reader.Current.Consume(lineNotTrimmed.Length);
                             continue;
                         }
                     }

@@ -8,7 +8,7 @@ namespace NPreprocessor
 {
     public class MacroResolver : IMacroResolver
     {
-        private List<IMacro> _macros = new List<IMacro>();
+        private readonly List<IMacro> _macros = new List<IMacro>();
 
         public MacroResolver()
         {
@@ -25,7 +25,6 @@ namespace NPreprocessor
         }
 
         public List<IMacro> Macros { get => _macros; }
-
 
         public List<string> Resolve(ITextReader txtReader, State state = null)
         {
@@ -101,7 +100,7 @@ namespace NPreprocessor
 
             var lines = macroResult.result;
 
-            if (lines != null && lines.Count() > 0)
+            if (lines != null && lines.Any())
             {
                 lines[0] = skipped + lines[0];
 
@@ -180,22 +179,18 @@ namespace NPreprocessor
 
         private IMacro FindStartingMacro(ITextReader txtReader, State state)
         {
-            foreach (var macro in _macros.Where(m => m.Pattern != null))
+            var tmp = _macros.FirstOrDefault(m => m.Pattern != null && Regex.IsMatch(txtReader.Current.Remainder, "^" + CreatePatternForMacro(m)));
+
+            if (tmp != null)
             {
-                if (Regex.IsMatch(txtReader.Current.Remainder, "^" + CreatePatternForMacro(macro)))
-                {
-                    return macro;
-                }
+                return tmp;
             }
 
             foreach (IDynamicMacro dynamicMacro in _macros.OfType<IDynamicMacro>())
             {
-                if (dynamicMacro.CanBeInvoked(txtReader, state, out var index))
+                if (dynamicMacro.CanBeInvoked(txtReader, state, out var index) && index == 0)
                 {
-                    if (index == 0)
-                    {
-                        return dynamicMacro;
-                    }
+                    return dynamicMacro;
                 }
             }
             return null;

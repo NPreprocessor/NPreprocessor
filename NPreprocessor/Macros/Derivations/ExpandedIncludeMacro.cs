@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 namespace NPreprocessor.Macros.Derivations
 {
@@ -14,12 +13,12 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
-        public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
+        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
         {
-            var line = txtReader.Current.Remainder;
+            var line = reader.Current.Remainder;
             var prefixLength = Pattern.Length;
             var fileName = MacroString.Trim(line.Substring(prefixLength).Trim().Trim('\"'));
-            txtReader.Current.Finish();
+            reader.Current.Finish();
 
             var m4Line = $"include(`{fileName}')";
             return (new List<string>() { m4Line }, false);

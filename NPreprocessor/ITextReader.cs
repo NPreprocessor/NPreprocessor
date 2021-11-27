@@ -7,6 +7,7 @@ namespace NPreprocessor
         int LineNumber { get; }
 
         string LineContinuationCharacters { get; }
+
         string NewLineEnding { get; }
 
         bool AppendNext();

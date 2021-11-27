@@ -7,22 +7,9 @@ namespace NPreprocessor.Tests
 {
     public class MacroResolverTests
     {
-        private ITextReader CreateTextReader(string txt)
+        private static ITextReader CreateTextReader(string txt)
         {
             return new TextReader(txt, Environment.NewLine);
-        }
-
-
-        //[Fact]
-        public void VariableScenario()
-        {
-            var macroResolver = new MacroResolver();
-            var result = macroResolver.Resolve(CreateTextReader(@"define(x, `incr(x)')dnl
-x
-x"));
-            Assert.Equal(2, result.Count);
-            Assert.Equal("0", result[0]);
-            Assert.Equal("1", result[1]);
         }
 
         [Fact]

@@ -8,10 +8,10 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => false;
 
-        public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
+        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
         {
-            string comment = txtReader.Current.Remainder;
-            txtReader.Current.Finish();
+            string comment = reader.Current.Remainder;
+            reader.Current.Finish();
 
             return (new List<string>() { comment }, true);
         }

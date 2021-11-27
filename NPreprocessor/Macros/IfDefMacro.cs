@@ -12,10 +12,10 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => true;
 
-        public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
+        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
         {
-            var call = CallParser.GetInvocation(txtReader, 0, state.Definitions);
-            txtReader.Current.Consume(call.length);
+            var call = CallParser.GetInvocation(reader, 0, state.Definitions);
+            reader.Current.Consume(call.length);
             var args = call.args;
             var name = MacroString.Trim(args[0]);
 

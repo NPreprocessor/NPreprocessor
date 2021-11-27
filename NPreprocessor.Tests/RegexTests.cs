@@ -12,8 +12,8 @@ namespace NPreprocessor.Tests
         public void Test()
         {
             string text = "`TOP((41+1), a))))";
-
             var m = _invocation.Match(text);
+            Assert.True(m.Success);
         }
     }
 }

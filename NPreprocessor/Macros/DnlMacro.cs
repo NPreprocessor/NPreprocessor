@@ -8,9 +8,9 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => false;
 
-        public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
+        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
         {
-            txtReader.Current.Finish();
+            reader.Current.Finish();
             state.MergePoints += 2;
             return (new List<string>() { string.Empty }, true);
         }

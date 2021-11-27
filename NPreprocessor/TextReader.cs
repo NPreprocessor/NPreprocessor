@@ -6,21 +6,18 @@ namespace NPreprocessor
 {
     public class TextReader : ITextReader
     {
-        private readonly string _text = null;
         private readonly string _newLineCharacters;
-        private char[] _textCharacters = null;
+        private readonly char[] _textCharacters = null;
         private int _currentIndex = 0;
-        private int _lineNumber = 0;
         private ILineReader _lineReader = null;
 
         public TextReader(string text, string newLineCharacters)
         {
-            _text = text;
-            this._newLineCharacters = newLineCharacters;
+            _newLineCharacters = newLineCharacters;
             _textCharacters = text.ToCharArray();
         }
 
-        public int LineNumber { get => _lineNumber; set => _lineNumber = value; }
+        public int LineNumber { get; set; }
 
         public string CurrentLine { get; set; }
 
@@ -122,7 +119,7 @@ namespace NPreprocessor
             }
         }
 
-        private bool StartWith(char[] textCharacters, int currentIndex, string newLineCharacters)
+        private static bool StartWith(char[] textCharacters, int currentIndex, string newLineCharacters)
         {
             for (var i = 0; i < newLineCharacters.Length; i++)
             {
@@ -153,10 +150,6 @@ namespace NPreprocessor
             _currentIndex = 0;
         }
 
-        public void Dispose()
-        {
-        }
-
         public bool AppendNext()
         {
             var current = LineReader.Remainder;
@@ -167,6 +160,10 @@ namespace NPreprocessor
                 return true;
             }
             return false;
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

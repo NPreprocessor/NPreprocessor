@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NPreprocessor
 {
-    public class MacroString
+    public static class MacroString
     {
         public static string Trim(string value)
         {

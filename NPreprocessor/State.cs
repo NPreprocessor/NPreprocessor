@@ -10,7 +10,7 @@ namespace NPreprocessor
         {
         }
 
-        public Dictionary<string, string> Mappings = new Dictionary<string, string>();
+        public Dictionary<string, string> Mappings { get; set; } = new Dictionary<string, string>();
         
         public Dictionary<string, bool> MappingsParameters { get; set; } = new Dictionary<string, bool>();
         
