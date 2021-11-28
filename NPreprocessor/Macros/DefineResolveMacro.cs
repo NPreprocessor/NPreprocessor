@@ -104,7 +104,7 @@ namespace NPreprocessor.Macros
 
         private static string GetRegex(string key)
         {
-            return @"(?:^|\b|\s|\W)(" + Regex.Escape(key) + @")(?:\b|\s|\W)";
+            return @"(?<=^|\b|\s|\W)(" + Regex.Escape(key) + @")(?=\b|\s|\W)";
         }
 
         private static bool IsInsideString(string result, int index, State state)

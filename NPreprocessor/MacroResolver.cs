@@ -104,16 +104,6 @@ namespace NPreprocessor
             {
                 lines[0] = skipped + lines[0];
 
-                if (lines.Count == 1 && lines[0] == String.Empty)
-                {
-                    if (state.CreateNewLine || !result.Any())
-                    {
-                        result.Add(string.Empty);
-                    }
-                    state.Stack.Pop();
-                    return true;
-                }
-
                 if (!macroResult.finished)
                 {
                     var cascadeTextReader = new TextReader(string.Join(state.NewLineEnding, lines), state.NewLineEnding);
@@ -122,8 +112,11 @@ namespace NPreprocessor
                         Stack = new Stack<IMacro>(state.Stack), 
                         Definitions = state.Definitions,
                         Mappings = state.Mappings,
-                        MappingsParameters = state.MappingsParameters
+                        MappingsParameters = state.MappingsParameters,
+                        DefinitionPrefix = state.DefinitionPrefix
                     });
+                    
+
                     AddToResult(result, cascadeResult, state.CreateNewLine);
                 }
                 else
@@ -152,19 +145,12 @@ namespace NPreprocessor
 
         private (IMacro macro, int position) FindBestMacroToCall(ITextReader txtReader, State state)
         {
-            IMacro bastStartMacro = FindStartingMacro(txtReader, state);
-            if (bastStartMacro != null)
-            {
-                return (bastStartMacro, 0);
-            }
-
             var bestMacros = _macros
                 .Where(m => m.Pattern != null)
-                .Select(macro => (macro, Regex.Match(txtReader.Current.Remainder, @"(?:\b|\W|\s)" + "(" + CreatePatternForMacro(macro) + ")")))
+                .Select(macro => (macro, Regex.Match(txtReader.Current.Remainder, @"(?:\b|\W|\s|^)" + "(" + CreatePatternForMacro(macro) + ")")))
                 .Where(macroWithMatch => macroWithMatch.Item2.Success)
                 .Select(m => (m.macro, m.Item2.Groups[1].Index))
-                .OrderBy(m => m.Index)
-                .Take(1).ToList();
+                .ToList();
 
             foreach (IDynamicMacro dynamicMacro in _macros.OfType<IDynamicMacro>())
             {
@@ -174,26 +160,17 @@ namespace NPreprocessor
                 }
             }
 
-            return bestMacros.OrderBy(m => m.Index).FirstOrDefault();
-        }
+            var bestMacro = bestMacros.OrderBy(m => m.Index)
+                .FirstOrDefault();
 
-        private IMacro FindStartingMacro(ITextReader txtReader, State state)
-        {
-            var tmp = _macros.FirstOrDefault(m => m.Pattern != null && Regex.IsMatch(txtReader.Current.Remainder, "^" + CreatePatternForMacro(m)));
-
-            if (tmp != null)
+            if (bestMacro == default)
             {
-                return tmp;
+                return default;
             }
-
-            foreach (IDynamicMacro dynamicMacro in _macros.OfType<IDynamicMacro>())
+            else
             {
-                if (dynamicMacro.CanBeInvoked(txtReader, state, out var index) && index == 0)
-                {
-                    return dynamicMacro;
-                }
+                return (bestMacro.macro, bestMacro.Index);
             }
-            return null;
         }
 
         private static string CreatePatternForMacro(IMacro macro)

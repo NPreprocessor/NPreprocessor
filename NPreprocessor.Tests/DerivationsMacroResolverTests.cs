@@ -70,6 +70,50 @@ namespace NPreprocessor.Tests
         }
 
         [Fact]
+        public void DefineResolvesWithComplexArguments()
+        {
+            var macroResolver = new MacroResolver();
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+
+            var reader = CreateLineReader(@"`define Abc(nam,def,uni,lwr,upr,des) (*units=uni, type=""instance"", ask=""yes"", desc=des*) parameter real nam=def from(lwr:upr);
+`Abc(pname,1,1u,0,inf,something)");
+            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal("(*units=1u, type=\"instance\", ask=\"yes\", desc=something*) parameter real pname=1 from(0:inf);", results[1]);
+        }
+
+        [Fact]
+        public void DefineResolvesWithComplexArguments2()
+        {
+            var macroResolver = new MacroResolver();
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+
+            var reader = CreateLineReader(@"`define op(a, b) a + b
+`op(1,4)");
+            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal("1 + 4", results[1]);
+        }
+
+        [Fact]
+        public void DefineResolvesWithLineComments()
+        {
+            var macroResolver = new MacroResolver();
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+
+            var reader = CreateLineReader(@"`define abc2004 1.60217653e-19 //test
+`define xyz2000 2    // test
+    x     =`abc2004*`xyz2000;");
+            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal(string.Empty, results[1]);
+            Assert.Equal("    x     =1.60217653e-19*2;", results[2]);
+        }
+
+        [Fact]
         public void Undefine()
         {
             var macroResolver = new MacroResolver();

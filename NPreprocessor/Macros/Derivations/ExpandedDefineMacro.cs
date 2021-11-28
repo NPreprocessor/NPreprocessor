@@ -22,20 +22,22 @@ namespace NPreprocessor.Macros.Derivations
 
         public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
         {
-            var line = txtReader.Current.Remainder;
+            string line = GetLine(txtReader);
+
             txtReader.Current.Finish();
+
             var methodMatch = _method.Match(line);
 
             if (methodMatch.Success)
             {
                 var name = methodMatch.Groups[1].Value;
                 var args = methodMatch.Groups[2].Value;
-                var value = methodMatch.Groups[3].Value;
+                var value = methodMatch.Groups[3].Value.Trim();
                 var argsSplited = args.Split(',');
                 for (var i = 1; i <= argsSplited.Length; i++)
                 {
-                    var arg = argsSplited[i-1].Trim();
-                    value = value.Replace($"{arg}", $"${i}");
+                    var arg = argsSplited[i - 1].Trim();
+                    value = Regex.Replace(value, @$"(?<=\b|\W|\s){arg}(?=\b|\W|\s)", $"${i}");
                 }
 
                 return (new List<string>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
@@ -43,10 +45,30 @@ namespace NPreprocessor.Macros.Derivations
             else
             {
                 var constMatch = _const.Match(line);
-                var name = constMatch.Groups[1].Value;
-                var value = constMatch.Groups[2].Value;
-                return (new List<string>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
+                if (constMatch.Success)
+                {
+                    var name = constMatch.Groups[1].Value;
+                    var value = constMatch.Groups[2].Value.Trim();
+                    return (new List<string>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
+                }
+                else
+                {
+                    return (new List<string>() { line }, true);
+                }
             }
+        }
+
+        private static string GetLine(ITextReader txtReader)
+        {
+            var remainder = txtReader.Current.Remainder;
+
+            var commentIndex = remainder.IndexOf("//");
+
+            if (commentIndex != -1)
+            {
+                remainder = remainder.Substring(0, commentIndex);
+            }
+            return remainder;
         }
     }
 }

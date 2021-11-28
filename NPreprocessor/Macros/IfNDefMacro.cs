@@ -11,7 +11,7 @@ namespace NPreprocessor.Macros
         public string Pattern => "ifndef";
 
         public bool AreArgumentsRequired => true;
-
+        
         public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
         {
             var call = CallParser.GetInvocation(reader, 0, state.Definitions);
