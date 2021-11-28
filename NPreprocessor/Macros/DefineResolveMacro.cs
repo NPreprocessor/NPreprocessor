@@ -72,7 +72,7 @@ namespace NPreprocessor.Macros
                         foreach (var arg in call.args)
                         {
                             var argR = MacroString.Trim(call.args[i - 1]);
-                            replacement = replacement.Replace($"${i}", argR);
+                            replacement = Regex.Replace(replacement, @$"\${i}(?=\b|\s|\W)", argR);
                             i++;
                         }
                     }
