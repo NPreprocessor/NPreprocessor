@@ -22,6 +22,7 @@ namespace NPreprocessor
             _macros.Add(new DnlMacro());
             _macros.Add(new IncrMacro());
             _macros.Add(new DecrMacro());
+            _macros.Add(new StringMacro());
         }
 
         public List<IMacro> Macros { get => _macros; }

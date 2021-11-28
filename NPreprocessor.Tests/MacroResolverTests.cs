@@ -347,6 +347,19 @@ a");
         }
 
         [Fact]
+        public void LineCommentQuoted()
+        {
+            var macroResolver = new MacroResolver();
+            var reader = CreateTextReader(@"define(x,1)dnl
+            ""// abc"" x");
+
+            var results = macroResolver.Resolve(reader);
+
+            Assert.Single(results);
+            Assert.Equal(@"            ""// abc"" 1", results[0]);
+        }
+
+        [Fact]
         public void LineCommentLaterInLine()
         {
             var macroResolver = new MacroResolver();
