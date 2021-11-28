@@ -17,7 +17,7 @@ namespace NPreprocessor
             {
                 var name = match.name;
                 var argsWithBrackets = match.args;
-                var args = SplitArguments(argsWithBrackets);
+                var args = SplitArguments(argsWithBrackets, defs);
 
                 return (name, args, name.Length + 2 + argsWithBrackets.Length);
             }
@@ -81,17 +81,34 @@ namespace NPreprocessor
             return (false,null, null);
         }
 
-        private static string[] SplitArguments(string args)
+        private static string[] SplitArguments(string args, HashSet<string> defs)
         {
             var list = new List<string>();
             var positions = new List<int>();
 
             int counter = 0;
+            bool insideString = false;
+            bool insideQuotes = false;
             for (var i = 0; i < args.Length; i++)
             {
-                if (counter == 0 && args[i] == ',')
+                if (counter == 0 && args[i] == ',' && !insideString && !insideQuotes)
                 {
                     positions.Add(i);
+                }
+
+                if (args[i] == '`' && (defs == null || defs.All(d => !args.Substring(i).StartsWith(d))))
+                {
+                    insideString = true;
+                }
+
+                if (args[i] == '\'')
+                {
+                    insideString = false;
+                }
+
+                if (args[i] == '"')
+                {
+                    insideQuotes = !insideQuotes;
                 }
 
                 if (args[i] == '(')

@@ -181,6 +181,23 @@ name1");
         }
 
         [Fact]
+        public void IfDefCase0()
+        {
+            var macroResolver = new MacroResolver();
+            macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
+
+            var reader = CreateLineReader(@"`define __a__
+`ifdef __a__
+    electrical di2, si3;
+`endif");
+
+            var results = macroResolver.Resolve(reader, new State {  DefinitionPrefix = "`" });
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal("    electrical di2, si3;", results[1]);
+        }
+
+        [Fact]
         public void IfDefCase1()
         {
             var macroResolver = new MacroResolver();
