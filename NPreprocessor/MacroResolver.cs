@@ -10,9 +10,10 @@ namespace NPreprocessor
     {
         private readonly List<IMacro> _macros = new List<IMacro>();
 
-        public MacroResolver()
+        public MacroResolver(bool ignoreComments = false)
         {
-            _macros.Add(new LineCommentMacro());
+            _macros.Add(new BlockCommentMacro() { IgnoreComment = ignoreComments });
+            _macros.Add(new LineCommentMacro() { IgnoreComment = ignoreComments });
             _macros.Add(new UndefineMacro());
             _macros.Add(new DefineMacro());
             _macros.Add(new DefineResolveMacro());
@@ -35,17 +36,20 @@ namespace NPreprocessor
             }
 
             var result = new List<string>();
-            List<string> lastResult = null;
+            List<string> lastResult;
             do
             {
+                txtReader.MoveNext();
+                state.NewLinePoints += 1;
+
                 lastResult = ProcessCurrentLine(txtReader, state);
                 if (lastResult != null)
                 {
-                    AddToResult(result, lastResult, state.MergePoints == 0);
+                    AddToResult(result, lastResult, state.CreateNewLine);
 
-                    if (state.MergePoints > 0)
+                    if (state.CreateNewLine)
                     {
-                        state.MergePoints -= 1;
+                        state.NewLinePoints -= 1;
                     }
                 }
             }
@@ -56,11 +60,9 @@ namespace NPreprocessor
 
         private List<string> ProcessCurrentLine(ITextReader txtReader, State state)
         {
-            txtReader.MoveNext();
             var currentLine = txtReader.Current;
             if (currentLine == null) return null;
             var result = new List<string>();
-
 
             while (txtReader.Current?.Remainder != null && txtReader.Current?.Remainder != String.Empty)
             {
@@ -116,13 +118,13 @@ namespace NPreprocessor
                         MappingsParameters = state.MappingsParameters,
                         DefinitionPrefix = state.DefinitionPrefix
                     });
-                    
 
-                    AddToResult(result, cascadeResult, state.CreateNewLine);
+
+                    AddToResult(result, cascadeResult, state.CreateNewLine && txtReader.Current.Remainder == null);
                 }
                 else
                 {
-                    AddToResult(result, lines, state.CreateNewLine);
+                    AddToResult(result, lines, state.CreateNewLine && txtReader.Current.Remainder == null);
                 }
             }
 
@@ -132,6 +134,12 @@ namespace NPreprocessor
 
         private static void AddToResult(List<string> result, List<string> toAdd, bool createNewLine)
         {
+            if (toAdd.Any(a => a.StartsWith("/")))
+            {
+
+            }
+
+
             if (!result.Any() || createNewLine)
             {
                 result.AddRange(toAdd);
@@ -143,12 +151,11 @@ namespace NPreprocessor
             }
         }
 
-
         private (IMacro macro, int position) FindBestMacroToCall(ITextReader txtReader, State state)
         {
             var bestMacros = _macros
                 .Where(m => m.Pattern != null)
-                .Select(macro => (macro, Regex.Match(txtReader.Current.Remainder, @"(?:\b|\W|\s|^)" + "(" + CreatePatternForMacro(macro) + ")")))
+                .Select(macro => (macro, Regex.Match(txtReader.Current.Remainder,  CreatePatternForMacro(macro))))
                 .Where(macroWithMatch => macroWithMatch.Item2.Success)
                 .Select(m => (m.macro, m.Item2.Groups[1].Index))
                 .ToList();
@@ -178,9 +185,9 @@ namespace NPreprocessor
         {
             if (macro.AreArgumentsRequired)
             {
-                return macro.Pattern + @"\(.*";
+                return @"(?<=\b|\W|\s|^)" + "(" + macro.Pattern + @"\(.*" + ")";
             }
-            return macro.Pattern;
+            return @"(?<=\b|\W|\s|^)" + "(" + macro.Pattern + ")";
         }
     }
 }

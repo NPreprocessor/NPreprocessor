@@ -181,6 +181,23 @@ name1");
         }
 
         [Fact]
+        public void IfDefString()
+        {
+            var macroResolver = new MacroResolver();
+            macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
+
+            var reader = CreateLineReader(@"`define __a__
+`ifdef __a__
+    ""a\""`define y\""bc""
+`endif");
+
+            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal(@"    ""a\""`define y\""bc""", results[1]);
+        }
+
+        [Fact]
         public void IfDefCase0()
         {
             var macroResolver = new MacroResolver();
@@ -351,5 +368,52 @@ end");
             Assert.Equal("end", results[2]);
         }
 
+
+        [Fact]
+        public void IfDefCase7()
+        {
+            var macroResolver = new MacroResolver();
+            macroResolver.Macros.Insert(0, new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+
+            var reader = CreateLineReader(@"`define x
+    `ifdef x  
+        `ifdef x
+            1
+        `else
+            2
+        `endif
+    `endif");
+
+            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal("                        1", results[1]);
+        }
+
+
+        [Fact]
+        public void IfDefCase8()
+        {
+            var macroResolver = new MacroResolver();
+            macroResolver.Macros.Insert(0, new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
+            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+
+            var reader = CreateLineReader(@"`ifdef E1
+`ifdef T1
+module A(c,b,e,dt);
+`else
+module B(c,b,e,s,dt);
+`endif
+`else
+`ifdef T2
+module C(c,b,e);
+`else
+module D(c,b,e,s);
+`endif
+`endif");
+
+            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            Assert.Equal("module D(c,b,e,s);", results[0]);
+        }
     }
 }

@@ -263,6 +263,21 @@ Operator";
             Assert.Equal(" a", results[1]);
         }
 
+
+        [Fact]
+        public void IfDefCase4()
+        {
+            var macroResolver = new MacroResolver();
+            var reader = CreateTextReader(@"define(name1,1)
+ifdef(`name1', `""a\""`define y\""bc""')");
+
+            var results = macroResolver.Resolve(reader);
+            Assert.Equal(2, results.Count);
+            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal(@"""a\""`define y\""bc""", results[1]);
+        }
+
+
         [Fact]
         public void Include()
         {
@@ -335,6 +350,66 @@ a");
         }
 
         [Fact]
+        public void BlockCommentAtStart()
+        {
+            var macroResolver = new MacroResolver();
+            var reader = CreateTextReader(@"/* include(`data.txt') */ abc");
+
+            var results = macroResolver.Resolve(reader);
+
+            Assert.Single(results);
+            Assert.Equal("/* include(`data.txt') */ abc", results[0]);
+        }
+
+        [Fact]
+        public void BlockCommentLaterInLine()
+        {
+            var macroResolver = new MacroResolver();
+            var reader = CreateTextReader(@"define(x,2)
+(x - 2.0) /* include(`data.txt') */ abc");
+
+            var results = macroResolver.Resolve(reader);
+
+            Assert.Equal("", results[0]);
+            Assert.Equal("(2 - 2.0) /* include(`data.txt') */ abc", results[1]);
+        }
+
+
+        [Fact]
+        public void BlockCommentMulitpleLines()
+        {
+            var macroResolver = new MacroResolver();
+            var reader = CreateTextReader(@"dfg /* include(`data.txt')
+1
+2
+3
+*/ abc");
+
+            var results = macroResolver.Resolve(reader);
+
+            Assert.Equal(@"dfg /* include(`data.txt')", results[0]);
+            Assert.Equal(@"1", results[1]);
+            Assert.Equal(@"2", results[2]);
+            Assert.Equal(@"3", results[3]);
+            Assert.Equal(@"*/ abc", results[4]);
+        }
+
+        [Fact]
+        public void BlockCommentMulitpleLinesIgnored()
+        {
+            var macroResolver = new MacroResolver(true);
+            var reader = CreateTextReader(@"dfg /* include(`data.txt')
+1
+2
+3
+*/ abc");
+
+            var results = macroResolver.Resolve(reader);
+            Assert.Equal(1, results.Count);
+            Assert.Equal(@"dfg  abc", results[0]);
+        }
+
+        [Fact]
         public void LineCommentAtStart()
         {
             var macroResolver = new MacroResolver();
@@ -344,6 +419,36 @@ a");
 
             Assert.Single(results);
             Assert.Equal("//include(`data.txt')", results[0]);
+        }
+
+        [Fact]
+        public void LineCommentIgnored()
+        {
+            var macroResolver = new MacroResolver(true);
+            var reader = CreateTextReader(@"abc //include(`data.txt')");
+
+            var results = macroResolver.Resolve(reader);
+
+            Assert.Single(results);
+            Assert.Equal("abc ", results[0]);
+        }
+
+        [Fact]
+        public void LineCommentIgnored2()
+        {
+            var macroResolver = new MacroResolver(true);
+            var reader = CreateTextReader(@"
+//
+//
+//");
+
+            var results = macroResolver.Resolve(reader);
+
+            Assert.Equal(4, results.Count);
+            Assert.Equal("", results[0]);
+            Assert.Equal("", results[1]);
+            Assert.Equal("", results[2]);
+            Assert.Equal("", results[3]);
         }
 
         [Fact]

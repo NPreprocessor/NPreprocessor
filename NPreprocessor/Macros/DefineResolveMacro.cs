@@ -20,8 +20,9 @@ namespace NPreprocessor.Macros
             string result = reader.Current.Remainder;
             var match = state.Mappings.Keys
                 .Select(key => Regex.Match(result, GetRegex(key)))
-                .Where(s => s.Success)
-                .FirstOrDefault(s => !IsInsideString(result, s.Groups[1].Index, state));
+                .Where(s => s.Success && !IsInsideString(result, s.Groups[1].Index, state))
+                .OrderBy(i => i.Groups[1].Index)
+                .FirstOrDefault();
 
             if (match != null)
             {
@@ -42,7 +43,7 @@ namespace NPreprocessor.Macros
             var item = state.Mappings.Keys
                 .Select(key => (key, Regex.Match(result, GetRegex(key))))
                 .Where(match => match.Item2.Success && !IsInsideString(result, match.Item2.Groups[1].Index, state))
-                .OrderBy(i => i.Item2.Index)
+                .OrderBy(i => i.Item2.Groups[1].Index)
                 .FirstOrDefault();
 
             if (item != default)
@@ -76,19 +77,24 @@ namespace NPreprocessor.Macros
                             i++;
                         }
                     }
+                    
+
                     if (call.length > 0)
                     {
                         var callString = remainder.Substring(0, call.length);
-                        result = result.Replace(callString, replacement);
+                        var regex = new Regex(Regex.Escape(callString));
+                        result = regex.Replace(result, replacement, 1);
                     }
                     else
                     {
-                        result = result.Replace(key, replacement);
+                        var regex = new Regex(Regex.Escape(key));
+                        result = regex.Replace(result, replacement, 1);
                     }
                 }
                 else
                 {
-                    result = result.Replace(key, replacement);
+                    var regex = new Regex(Regex.Escape(key));
+                    result = regex.Replace(result, replacement, 1);
                 }
 
                 resolved = true;

@@ -40,18 +40,37 @@ namespace NPreprocessor
                 string name = match.Groups[1].Value;
                 int counter = 0;
                 bool insideString = false;
+                bool insideQuotes = false;
+
                 int i = 0;
                 int start = match.Index + name.Length;
                 for (i = start; i < remainder.Length; i++)
                 {
-                    if (remainder[i] == '`' && (defs == null || defs.All(d => !remainder.Substring(i).StartsWith(d))))
+                    if (!insideQuotes && remainder[i] == '`' && (defs == null || defs.All(d => !remainder.Substring(i).StartsWith(d))))
                     {
                         insideString = true;
+                    }
+
+                    if (i < remainder.Length - 1 && remainder.Substring(i, 2) == @"\'")
+                    {
+                        i += 2;
+                        continue;
+                    }
+
+                    if (i < remainder.Length - 1 && remainder.Substring(i, 2) == @"\""")
+                    {
+                        i += 2;
+                        continue;
                     }
 
                     if (remainder[i] == '\'')
                     {
                         insideString = false;
+                    }
+
+                    if (remainder[i] == '"')
+                    {
+                        insideQuotes = !insideQuotes;
                     }
 
                     if (remainder[i] == '(' && !insideString)
@@ -96,9 +115,21 @@ namespace NPreprocessor
                     positions.Add(i);
                 }
 
-                if (args[i] == '`' && (defs == null || defs.All(d => !args.Substring(i).StartsWith(d))))
+                if (!insideQuotes && args[i] == '`' && (defs == null || defs.All(d => !args.Substring(i).StartsWith(d))))
                 {
                     insideString = true;
+                }
+
+                if (i < args.Length - 1 && args.Substring(i, 2) == @"\'")
+                {
+                    i += 2;
+                    continue;
+                }
+
+                if (i < args.Length - 1 && args.Substring(i, 2) == @"\""")
+                {
+                    i += 2;
+                    continue;
                 }
 
                 if (args[i] == '\'')

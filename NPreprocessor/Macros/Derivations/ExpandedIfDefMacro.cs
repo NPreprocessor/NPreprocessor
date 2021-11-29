@@ -47,41 +47,42 @@ namespace NPreprocessor.Macros.Derivations
                 }
                 else
                 {
-                    string line = reader.Current.Remainder.TrimStart();
-                    string lineNotTrimmed = reader.Current.Remainder;
+                    string line = GetLine(reader);
+                    string lineTrimmed = line.TrimStart();
 
-                    if (mode == 1 && line.StartsWith(ElsePrefix))
+                    if (mode == 1 && count == 1 && lineTrimmed.StartsWith(ElsePrefix))
                     {
                         mode = 2;
                         continue;
                     }
 
-                    if (line.StartsWith(Pattern))
+                    if (lineTrimmed.StartsWith(Pattern))
                     {
                         count++;
                     }
 
-                    if (line.StartsWith(EndIfPrefix))
+                    if (lineTrimmed.StartsWith(EndIfPrefix))
                     {
                         count--;
                         if (count == 0)
                         {
-                            reader.Current.Consume(lineNotTrimmed.Length);
+                            reader.Current.Consume(reader.Current.Remainder.Length);
                             continue;
                         }
                     }
 
                     if (mode == 1)
                     {
-                        trueLines.Add(lineNotTrimmed);
+                        trueLines.Add(line);
                     }
 
                     if (mode == 2)
                     {
-                        falseLines.Add(lineNotTrimmed);
+                        falseLines.Add(line);
                     }
                 }
-            }
+            } 
+
             string @true = MacroString.Escape(string.Join(Environment.NewLine, trueLines));
             string @false = MacroString.Escape(string.Join(Environment.NewLine, falseLines));
             
@@ -95,6 +96,30 @@ namespace NPreprocessor.Macros.Derivations
                 m4Line = $"ifndef(`{state.DefinitionPrefix}{name}', `{@true}', `{@false}')";
             }
             return (new List<string> { m4Line }, false);
+        }
+
+
+        private static string GetLine(ITextReader txtReader)
+        {
+            var remainder = txtReader.Current.Remainder;
+
+            bool insideQuotes = false;
+            var commentIndex = remainder.IndexOf("//");
+
+            for (var i = 0; i < commentIndex; i++)
+            {
+                if (remainder[i] == '\"')
+                {
+                    insideQuotes = !insideQuotes;
+                }
+
+            }
+
+            if (commentIndex != -1 && !insideQuotes)
+            {
+                remainder = remainder.Substring(0, commentIndex);
+            }
+            return remainder;
         }
     }
 }

@@ -63,7 +63,7 @@ namespace NPreprocessor.Macros.Derivations
             var remainder = txtReader.Current.Remainder;
 
             var commentIndex = remainder.IndexOf("//");
-
+            
             if (commentIndex != -1)
             {
                 remainder = remainder.Substring(0, commentIndex);

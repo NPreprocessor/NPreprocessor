@@ -11,7 +11,7 @@ namespace NPreprocessor.Macros
         public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
         {
             reader.Current.Finish();
-            state.MergePoints += 2;
+            state.NewLinePoints -= 2;
             return (new List<string>() { string.Empty }, true);
         }
     }

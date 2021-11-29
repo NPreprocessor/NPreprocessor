@@ -8,12 +8,14 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => false;
 
+        public bool IgnoreComment { get; set; } = false;
+
         public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
         {
             string comment = reader.Current.Remainder;
             reader.Current.Finish();
 
-            return (new List<string>() { comment }, true);
+            return (new List<string>() { IgnoreComment ? string.Empty : comment }, true);
         }
     }
 }

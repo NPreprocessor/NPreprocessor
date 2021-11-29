@@ -5,7 +5,7 @@ namespace NPreprocessor.Macros
 {
     public class StringMacro : IMacro
     {
-        public string Pattern => "\"((?:\\.|[^\\\"])*)\"";
+        public string Pattern => @"""((?:\\.|[^\\""])*)""";
 
         public bool AreArgumentsRequired => false;
 

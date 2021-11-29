@@ -29,6 +29,8 @@ namespace NPreprocessor
         {
             @string = @string.Replace("\r", "\\r");
             @string = @string.Replace("\n", "\\n");
+            @string = @string.Replace("'", @"\'");
+
             return @string;
         }
 

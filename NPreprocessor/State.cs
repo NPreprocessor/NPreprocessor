@@ -18,9 +18,9 @@ namespace NPreprocessor
 
         public string DefinitionPrefix { get; set; } = string.Empty;
 
-        public int MergePoints { get; set; } = 0;
+        public int NewLinePoints { get; set; } = -1;
 
-        public bool CreateNewLine => MergePoints == 0;
+        public bool CreateNewLine => NewLinePoints == 0;
 
         public string NewLineEnding { get; set; } = Environment.NewLine;
 
