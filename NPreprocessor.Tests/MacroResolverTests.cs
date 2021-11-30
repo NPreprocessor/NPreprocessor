@@ -13,9 +13,24 @@ namespace NPreprocessor.Tests
         }
 
         [Fact]
+        public void RegexExample01()
+        {
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            var result = macroResolver.Resolve(CreateTextReader(
+@"regex(`if', `Token(IF)')dnl
+regex(`([0-9]+)', `Token(NUMBER, $1)')dnl
+if 
+1234"));
+            Assert.Equal(2, result.Count);
+            Assert.Equal("Token(IF) ", result[0]);
+            Assert.Equal("Token(NUMBER, 1234)", result[1]);
+        }
+
+
+        [Fact]
         public void DecrScenario1()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var result = macroResolver.Resolve(CreateTextReader(@"define(x, 1)dnl
 decr(x)"));
             Assert.Single(result);
@@ -25,7 +40,7 @@ decr(x)"));
         [Fact]
         public void IncrScenario0()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var result = macroResolver.Resolve(CreateTextReader(@"define(x, 0)dnl
 incr(4)
 incr(5)"));
@@ -37,7 +52,7 @@ incr(5)"));
         [Fact]
         public void IncrScenario2()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var result = macroResolver.Resolve(CreateTextReader(@"define(x, 0)dnl
 incr(x)
 incr(x)"));
@@ -49,7 +64,7 @@ incr(x)"));
         [Fact]
         public void DefineDefinitonResolvesToEmpty()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var result = macroResolver.Resolve(CreateTextReader("define(name1)"));
             Assert.Single(result);
             Assert.Equal(string.Empty, result[0]); ;
@@ -59,7 +74,7 @@ incr(x)"));
         public void DnlRemoveNewLine()
         {
             string txt = "a dnl\r\ntest";
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var result = macroResolver.Resolve(CreateTextReader(txt));
             Assert.Single(result);
             Assert.Equal("a test", result[0]);
@@ -67,10 +82,28 @@ incr(x)"));
 
 
         [Fact]
+        public void DnlRemoveNewLine4()
+        {
+            string txt = 
+@"dnl
+dnl
+dnl
+dnl
+A
+B";
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            var result = macroResolver.Resolve(CreateTextReader(txt));
+            Assert.Equal(2, result.Count);
+            Assert.Equal("A", result[0]);
+            Assert.Equal("B", result[1]);
+        }
+
+
+        [Fact]
         public void DnlRemoveNewLine2()
         {
             string txt = "a)dnl\r\ntest";
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var result = macroResolver.Resolve(CreateTextReader(txt));
             Assert.Single(result);
             Assert.Equal("a)test", result[0]);
@@ -80,7 +113,7 @@ incr(x)"));
         public void DnlRemoveNewLine3()
         {
             string txt = "define(a,1)dnl\r\ntest";
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var result = macroResolver.Resolve(CreateTextReader(txt));
             Assert.Single(result);
             Assert.Equal("test", result[0]);
@@ -90,7 +123,7 @@ incr(x)"));
         public void DnlRemoveRestOfLine()
         {
             string txt = "a dnl abc\r\ntest";
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var result = macroResolver.Resolve(CreateTextReader(txt));
             Assert.Single(result);
             Assert.Equal("a test", result[0]);
@@ -100,7 +133,7 @@ incr(x)"));
         public void DnlIsNotExpanded()
         {
             string txt = "adnl\r\ntest";
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var result = macroResolver.Resolve(CreateTextReader(txt));
             Assert.Equal(2, result.Count);
             Assert.Equal("adnl", result[0]);
@@ -110,7 +143,7 @@ incr(x)"));
         [Fact]
         public void DefineResolves()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader("define(name1, `Hello.')\r\nname1");
             var results = macroResolver.Resolve(reader);
 
@@ -122,7 +155,7 @@ incr(x)"));
         [Fact]
         public void DefineWithControlCharactersResolves()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader(@"define(\Eame1, `Hello.')
 \Eame1");
 
@@ -135,7 +168,7 @@ incr(x)"));
         [Fact]
         public void DefineCascade()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             string txt = @"define(Plus, +)dnl
 define(Operator, `Plus')dnl
 Operator";
@@ -150,7 +183,7 @@ Operator";
         [Fact]
         public void DefineResolvesAndContinue()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader("define(name1, `Hello.')a\r\nname1");
             var results = macroResolver.Resolve(reader);
 
@@ -163,7 +196,7 @@ Operator";
         [Fact]
         public void DefineDoesNotResolves()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader("define(name1, `Hello.')\r\nname12");
             var results = macroResolver.Resolve(reader);
 
@@ -175,7 +208,7 @@ Operator";
         [Fact]
         public void DefineSupportsArguments()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader("define(name1, `Hello. $1')\r\nname1(`John') a");
             var results = macroResolver.Resolve(reader);
 
@@ -187,7 +220,7 @@ Operator";
         [Fact]
         public void UndefineWorks()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader("define(name1, `Hello.')\r\nundefine(`name1')\r\nname1");
 
             var results = macroResolver.Resolve(reader);
@@ -201,7 +234,7 @@ Operator";
         [Fact]
         public void UndefineWorksWithSpace()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader("define(name1, `Hello.')\r\n undefine(`name1')\r\nname1");
 
             var results = macroResolver.Resolve(reader);
@@ -215,7 +248,7 @@ Operator";
         [Fact]
         public void IfDefCase1()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader("define(name1, `Hello.')\r\nifdef(`name1', a, b)");
             var results = macroResolver.Resolve(reader);
 
@@ -228,7 +261,7 @@ Operator";
         [Fact]
         public void IfDefCase1String()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader("define(name1, `Hello.')\r\nifdef(`name1', `a', b)");
             
             var results = macroResolver.Resolve(reader);
@@ -241,7 +274,7 @@ Operator";
         [Fact]
         public void IfDefCase2()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader("define(name1, `Hello.')\r\nifdef(`name2', a, b)");
             
             var results = macroResolver.Resolve(reader);
@@ -254,7 +287,7 @@ Operator";
         [Fact]
         public void IfDefCase3()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader("define(name1, `Hello.')\r\nifdef(`name1', a)");
 
             var results = macroResolver.Resolve(reader);
@@ -267,7 +300,7 @@ Operator";
         [Fact]
         public void IfDefCase4()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader(@"define(name1,1)
 ifdef(`name1', `""a\""`define y\""bc""')");
 
@@ -281,7 +314,7 @@ ifdef(`name1', `""a\""`define y\""bc""')");
         [Fact]
         public void Include()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader("include(`data.txt')a");
             var result = macroResolver.Resolve(reader);
             Assert.Equal("File with `dataa", result.Single());
@@ -290,7 +323,7 @@ ifdef(`name1', `""a\""`define y\""bc""')");
         [Fact]
         public void DefineAndInclude()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader("define(data, `Hello.')\r\ninclude(`data.txt')");
 
             var results = macroResolver.Resolve(reader);
@@ -301,7 +334,7 @@ ifdef(`name1', `""a\""`define y\""bc""')");
         [Fact]
         public void DefineAndNewLines()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader(@"define(a, 1
 2
 3
@@ -321,7 +354,7 @@ a");
         [Fact]
         public void DefineAndBrackets()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
      
             var reader = CreateTextReader(@"define(a, `b(()')dnl
 a"); 
@@ -333,7 +366,7 @@ a");
         [Fact]
         public void DefineAndNewLinesAndContinuations()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader(@"define(a, 1
 2
 3 \
@@ -352,7 +385,7 @@ a");
         [Fact]
         public void BlockCommentAtStart()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader(@"/* include(`data.txt') */ abc");
 
             var results = macroResolver.Resolve(reader);
@@ -364,7 +397,7 @@ a");
         [Fact]
         public void BlockCommentLaterInLine()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader(@"define(x,2)
 (x - 2.0) /* include(`data.txt') */ abc");
 
@@ -378,7 +411,7 @@ a");
         [Fact]
         public void BlockCommentMulitpleLines()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader(@"dfg /* include(`data.txt')
 1
 2
@@ -397,7 +430,7 @@ a");
         [Fact]
         public void BlockCommentMulitpleLinesIgnored()
         {
-            var macroResolver = new MacroResolver(true);
+            var macroResolver = MacroResolverFactory.CreateDefault(true);
             var reader = CreateTextReader(@"dfg /* include(`data.txt')
 1
 2
@@ -412,7 +445,7 @@ a");
         [Fact]
         public void LineCommentAtStart()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader(@"//include(`data.txt')");
 
             var results = macroResolver.Resolve(reader);
@@ -424,7 +457,7 @@ a");
         [Fact]
         public void LineCommentIgnored()
         {
-            var macroResolver = new MacroResolver(true);
+            var macroResolver = MacroResolverFactory.CreateDefault(true);
             var reader = CreateTextReader(@"abc //include(`data.txt')");
 
             var results = macroResolver.Resolve(reader);
@@ -436,7 +469,7 @@ a");
         [Fact]
         public void LineCommentIgnored2()
         {
-            var macroResolver = new MacroResolver(true);
+            var macroResolver = MacroResolverFactory.CreateDefault(true);
             var reader = CreateTextReader(@"
 //
 //
@@ -454,7 +487,7 @@ a");
         [Fact]
         public void LineCommentQuoted()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             var reader = CreateTextReader(@"define(x,1)dnl
             ""// abc"" x");
 
@@ -467,7 +500,7 @@ a");
         [Fact]
         public void LineCommentLaterInLine()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
 
             var reader = CreateTextReader(@"a b c // include(`data.txt')");
             var results = macroResolver.Resolve(reader);

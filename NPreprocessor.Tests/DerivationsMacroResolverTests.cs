@@ -16,8 +16,8 @@ namespace NPreprocessor.Tests
         [Fact]
         public void DefineDefinitonResolvesToEmpty()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
             var result = macroResolver.Resolve(CreateLineReader("`define name1"));
 
             Assert.Single(result);
@@ -27,8 +27,8 @@ namespace NPreprocessor.Tests
         [Fact]
         public void DefineMultilineWithArguments()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define x 111.345
 `define op(a,b) (a) \
@@ -46,8 +46,8 @@ namespace NPreprocessor.Tests
         [Fact]
         public void DefineResolves()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader("`define name1 Hello.\r\nname1");
             var results = macroResolver.Resolve(reader);
@@ -59,8 +59,8 @@ namespace NPreprocessor.Tests
         [Fact]
         public void DefineResolves2()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader("`define NOTGIVEN 123.4\r\n val=`NOTGIVEN; // Coeff");
             var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
@@ -72,8 +72,8 @@ namespace NPreprocessor.Tests
         [Fact]
         public void DefineResolvesWithComplexArguments()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define Abc(nam,def,uni,lwr,upr,des) (*units=uni, type=""instance"", ask=""yes"", desc=des*) parameter real nam=def from(lwr:upr);
 `Abc(pname,1,1u,0,inf,something)");
@@ -86,8 +86,8 @@ namespace NPreprocessor.Tests
         [Fact]
         public void DefineResolvesWithComplexArguments2()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define op(a, b) a + b
 `op(1,4)");
@@ -100,8 +100,8 @@ namespace NPreprocessor.Tests
         [Fact]
         public void DefineResolvesWithLineComments()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define abc2004 1.60217653e-19 //test
 `define xyz2000 2    // test
@@ -116,9 +116,9 @@ namespace NPreprocessor.Tests
         [Fact]
         public void Undefine()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
-            macroResolver.Macros.Insert(0, new ExpandedUndefineMacro("`undef"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
+            macroResolver.Macros.Add(new ExpandedUndefineMacro("`undef"));
 
             var reader = CreateLineReader("`define name1 Hello.\r\n`undef name1\r\nname1");
             var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
@@ -131,8 +131,8 @@ namespace NPreprocessor.Tests
         [Fact]
         public void DefineResolvesWithPrefix()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader("`define name1 Hello.\r\n`name1");
             var results = macroResolver.Resolve(reader, new State {  DefinitionPrefix = "`"});
@@ -144,8 +144,8 @@ namespace NPreprocessor.Tests
         [Fact]
         public void DefineResolvesWithContinuation()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define name1 Hello \
 Hello.
@@ -160,8 +160,8 @@ name1");
         [Fact]
         public void DefineSupportsArguments()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
             var reader = CreateLineReader("`define name1(arg) Hello. (arg)\r\nname1(John)");
             var results = macroResolver.Resolve(reader);
 
@@ -172,8 +172,8 @@ name1");
         [Fact]
         public void Include()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedIncludeMacro("`include"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedIncludeMacro("`include"));
 
             var reader = CreateLineReader("`include \"data.txt\"");
             var result = macroResolver.Resolve(reader);
@@ -183,7 +183,7 @@ name1");
         [Fact]
         public void IfDefString()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
             macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
@@ -200,7 +200,7 @@ name1");
         [Fact]
         public void IfDefCase0()
         {
-            var macroResolver = new MacroResolver();
+            var macroResolver = MacroResolverFactory.CreateDefault();
             macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
             macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
@@ -217,9 +217,9 @@ name1");
         [Fact]
         public void IfDefCase1()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define name1
 `ifdef name1
@@ -234,9 +234,9 @@ name1");
         [Fact]
         public void IfNDefCase1()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedIfNDefMacro("`ifndef", "`else", "`endif"));
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedIfNDefMacro("`ifndef", "`else", "`endif"));
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define name2
 `ifndef name1
@@ -252,9 +252,9 @@ name1");
         [Fact]
         public void IfDefCase2()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define name1
 `ifdef name2
@@ -271,9 +271,9 @@ name1");
         [Fact]
         public void IfDefCase3()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define name2
 `ifdef name2
@@ -296,9 +296,9 @@ name1");
         [Fact]
         public void IfDefCase4()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define name2
 `ifdef name2
@@ -322,9 +322,9 @@ name1");
         [Fact]
         public void IfDefCase5()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define name2
 `ifdef name2
@@ -352,9 +352,9 @@ name1");
         [Fact]
         public void IfDefCase6()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define x
     `ifdef x  
@@ -372,9 +372,9 @@ end");
         [Fact]
         public void IfDefCase7()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define x
     `ifdef x  
@@ -394,9 +394,9 @@ end");
         [Fact]
         public void IfDefCase8()
         {
-            var macroResolver = new MacroResolver();
-            macroResolver.Macros.Insert(0, new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
-            macroResolver.Macros.Insert(0, new ExpandedDefineMacro("`define"));
+            var macroResolver = MacroResolverFactory.CreateDefault();
+            macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`ifdef E1
 `ifdef T1

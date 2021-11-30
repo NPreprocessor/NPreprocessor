@@ -9,6 +9,7 @@ namespace NPreprocessor
         public State()
         {
         }
+        public Dictionary<string, string> Regexes { get; set; } = new Dictionary<string, string>();
 
         public Dictionary<string, string> Mappings { get; set; } = new Dictionary<string, string>();
         
@@ -25,6 +26,5 @@ namespace NPreprocessor
         public string NewLineEnding { get; set; } = Environment.NewLine;
 
         public Stack<IMacro> Stack { get; set; } = new Stack<IMacro>();
-        
     }
 }

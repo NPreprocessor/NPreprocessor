@@ -1,5 +1,4 @@
 ﻿using NPreprocessor.Macros;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -10,20 +9,9 @@ namespace NPreprocessor
     {
         private readonly List<IMacro> _macros = new List<IMacro>();
 
-        public MacroResolver(bool ignoreComments = false)
+        public MacroResolver(List<IMacro> macros)
         {
-            _macros.Add(new BlockCommentMacro() { IgnoreComment = ignoreComments });
-            _macros.Add(new LineCommentMacro() { IgnoreComment = ignoreComments });
-            _macros.Add(new UndefineMacro());
-            _macros.Add(new DefineMacro());
-            _macros.Add(new DefineResolveMacro());
-            _macros.Add(new IfDefMacro());
-            _macros.Add(new IfNDefMacro());
-            _macros.Add(new IncludeMacro());
-            _macros.Add(new DnlMacro());
-            _macros.Add(new IncrMacro());
-            _macros.Add(new DecrMacro());
-            _macros.Add(new StringMacro());
+            _macros = macros;           
         }
 
         public List<IMacro> Macros { get => _macros; }
@@ -41,7 +29,7 @@ namespace NPreprocessor
             {
                 txtReader.MoveNext();
                 state.NewLinePoints += 1;
-
+                
                 lastResult = ProcessCurrentLine(txtReader, state);
                 if (lastResult != null)
                 {
@@ -64,7 +52,7 @@ namespace NPreprocessor
             if (currentLine == null) return null;
             var result = new List<string>();
 
-            while (txtReader.Current?.Remainder != null && txtReader.Current?.Remainder != String.Empty)
+            while (txtReader.Current?.Remainder != null)
             {
                 (IMacro macro, int position) macroToCall = FindBestMacroToCall(txtReader, state);
 
@@ -81,13 +69,6 @@ namespace NPreprocessor
                     txtReader.Current.Finish();
                 }
             }
-
-            if (txtReader.Current?.Remainder == String.Empty)
-            {
-                result.Add(string.Empty);
-                txtReader.Current.Finish();
-            }
-
             return result;
         }
 
@@ -134,12 +115,6 @@ namespace NPreprocessor
 
         private static void AddToResult(List<string> result, List<string> toAdd, bool createNewLine)
         {
-            if (toAdd.Any(a => a.StartsWith("/")))
-            {
-
-            }
-
-
             if (!result.Any() || createNewLine)
             {
                 result.AddRange(toAdd);
