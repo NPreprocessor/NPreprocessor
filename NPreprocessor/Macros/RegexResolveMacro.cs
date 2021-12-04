@@ -35,7 +35,6 @@ namespace NPreprocessor.Macros
 
         public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
         {
-            bool resolved = false;
             string result = reader.Current.Remainder;
 
             var item = state.Regexes.Keys
@@ -51,17 +50,19 @@ namespace NPreprocessor.Macros
                 int index = match.Index;
 
                 var replacement = state.Regexes[key];
+
                 var regex = new Regex(key);
-                result = regex.Replace(result, replacement, 1);
-                resolved = true;
-            }
 
-            if (resolved)
+                var replacementUpdated = regex.Replace(result.Substring(match.Index, match.Length), replacement, 1, index);
+
+                reader.Current.Consume(match.Value.Length);
+
+                return (new List<TextBlock> { replacementUpdated }, false);
+            }
+            else
             {
-                reader.Current.Consume(reader.Current.Remainder.Length);
+                return (new List<TextBlock> { result }, true);
             }
-
-            return (new List<TextBlock> { result }, !resolved);
         }
     }
 }

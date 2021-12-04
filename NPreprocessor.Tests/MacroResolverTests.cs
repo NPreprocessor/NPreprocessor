@@ -26,6 +26,22 @@ if
             Assert.Equal("Token(NUMBER, 1234)", result[1]);
         }
 
+        [Fact]
+        public void RegexExample02()
+        {
+            var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
+            var result = macroResolver.Resolve(CreateTextReader(
+@"regex(`if', `Token(IF)')dnl
+regex(`([0-9]+)', `Token(NUMBER, $1)')dnl
+regex(`\s+', `Token(WHITESPACES)')dnl
+if 1234"));
+            Assert.Equal(1, result.LinesCount);
+            Assert.Equal("Token(IF)Token(WHITESPACES)Token(NUMBER, 1234)", result[0]);
+            Assert.Equal(3, result.Blocks.Count);
+            Assert.Equal("Token(IF)", result.Blocks[0].Value);
+            Assert.Equal("Token(WHITESPACES)", result.Blocks[1].Value);
+            Assert.Equal("Token(NUMBER, 1234)", result.Blocks[2].Value);
+        }
 
         [Fact]
         public void DecrScenario1()
