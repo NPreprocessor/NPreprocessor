@@ -13,15 +13,15 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
-        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
+        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
         {
             var line = reader.Current.Remainder;
-            reader.Current.Finish();
+            reader.Current.Finish(keapNewLine: true);
             var prefixLength = Pattern.Length;
             var name = line.Substring(prefixLength).TrimEnd('\r').TrimEnd('\n').Trim();
 
             var m4Line = "undefine(`" + state.DefinitionPrefix + name + "')";
-            return (new List<string>() { m4Line }, false);
+            return (new List<TextBlock>() { m4Line }, false);
         }
     }
 }

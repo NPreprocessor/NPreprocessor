@@ -7,6 +7,6 @@ namespace NPreprocessor
     {
         List<IMacro> Macros { get; }
 
-        List<string> Resolve(ITextReader txtReader, State state = null);
+        MacroResolverResult Resolve(ITextReader txtReader, State state = null);
     }
 }

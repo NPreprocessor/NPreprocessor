@@ -18,7 +18,7 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => true;
 
-        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
+        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
         {
             var call = CallParser.GetInvocation(reader, 0, state.Definitions);
             reader.Current.Consume(call.length);
@@ -26,7 +26,7 @@ namespace NPreprocessor.Macros
             var fileNameExpression = args[0];
             var fileName = MacroString.Trim(fileNameExpression);
             string fileContent = Provider(fileName);
-            return (new List<string>() { fileContent }, false);
+            return (new List<TextBlock>() { fileContent }, false);
         }
     }
 }

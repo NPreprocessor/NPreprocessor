@@ -29,7 +29,7 @@ namespace NPreprocessor
             {
                 if (_lineReader == null && CurrentLine != null)
                 {
-                    _lineReader = new LineReader(CurrentLine);
+                    _lineReader = new LineReader(CurrentLine, _newLineCharacters);
                 }
                 return _lineReader;
             }
@@ -48,10 +48,10 @@ namespace NPreprocessor
             while (true)
             {
                 int nextCurrentIndex;
-                if (result != null && result.EndsWith(LineContinuationCharacters))
+                if (result != null && result.EndsWith(LineContinuationCharacters + NewLineEnding))
                 {
                     string nextLine = PeekNextLine(out nextCurrentIndex);
-                    result = result.Substring(0, result.Length - LineContinuationCharacters.Length);
+                    result = result.Substring(0, result.Length - NewLineEnding.Length - LineContinuationCharacters.Length);
                     _currentIndex = nextCurrentIndex;
                     result += nextLine;
                     LineNumber++;
@@ -107,6 +107,8 @@ namespace NPreprocessor
             else
             {
                 var line = new string(_textCharacters, start, _currentIndex - start);
+                line += NewLineEnding;
+
                 _currentIndex += NewLineEnding.Length;
 
                 if (_currentIndex == _textCharacters.Length)
@@ -156,7 +158,7 @@ namespace NPreprocessor
             ReadLine();
             if (CurrentLine != null)
             {
-                _lineReader = new LineReader(current + NewLineEnding + CurrentLine);
+                _lineReader = new LineReader(current + CurrentLine, NewLineEnding);
                 return true;
             }
             return false;

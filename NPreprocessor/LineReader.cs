@@ -4,13 +4,16 @@
     {
         private int _index;
 
-        public LineReader(string line)
+        public LineReader(string line, string newLineCharacters)
         {
             FullLine = line;
+            NewLineCharacters = newLineCharacters;
             _index = 0;
         }
 
         public string FullLine { get; }
+
+        public string NewLineCharacters { get; }
 
         public bool AtStart => _index == 0;
 
@@ -37,9 +40,20 @@
             _index += count;
         }
 
-        public void Finish()
+        public void Finish(bool keapNewLine = false)
         {
-            _index = FullLine.Length + 1;
+            if (keapNewLine)
+            {
+                _index = FullLine.LastIndexOf(NewLineCharacters);
+                if (_index == -1)
+                {
+                    _index = FullLine.Length + 1;
+                }
+            }
+            else
+            {
+                _index = FullLine.Length + 1;
+            }
         }
     }
 }

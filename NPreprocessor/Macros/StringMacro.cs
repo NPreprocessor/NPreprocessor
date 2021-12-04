@@ -9,7 +9,7 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => false;
 
-        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
+        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
         {
             string remainder = reader.Current.Remainder;
 
@@ -17,7 +17,7 @@ namespace NPreprocessor.Macros
 
             reader.Current.Consume(quoted.Length);
 
-            return (new List<string>() { quoted }, true);
+            return (new List<TextBlock>() { quoted }, true);
         }
     }
 }

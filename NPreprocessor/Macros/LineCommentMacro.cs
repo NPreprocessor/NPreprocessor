@@ -10,12 +10,12 @@ namespace NPreprocessor.Macros
 
         public bool IgnoreComment { get; set; } = false;
 
-        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
+        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
         {
             string comment = reader.Current.Remainder;
             reader.Current.Finish();
 
-            return (new List<string>() { IgnoreComment ? string.Empty : comment }, true);
+            return (new List<TextBlock>() { IgnoreComment ? string.Empty : comment }, true);
         }
     }
 }

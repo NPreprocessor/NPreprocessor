@@ -10,6 +10,6 @@
 
         void Consume(int count);
 
-        void Finish();
+        void Finish(bool keapNewLine = false);
     }
 }

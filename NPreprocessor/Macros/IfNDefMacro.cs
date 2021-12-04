@@ -12,7 +12,7 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => true;
         
-        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
+        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
         {
             var call = CallParser.GetInvocation(reader, 0, state.Definitions);
             reader.Current.Consume(call.length);
@@ -21,17 +21,17 @@ namespace NPreprocessor.Macros
 
             if (!state.Definitions.Contains(name))
             {
-                return (MacroString.GetLines(args[1]), true);
+                return (MacroString.GetBlocks(args[1], state.NewLineEnding), true);
             }
             else
             {
                 if (args.Length == 3)
                 {
-                    return (MacroString.GetLines(args[2]), true);
+                    return (MacroString.GetBlocks(args[2], state.NewLineEnding), true);
                 }
                 else
                 {
-                    return (new List<string>(), true);
+                    return (new List<TextBlock>(), true);
                 }
             }
         }

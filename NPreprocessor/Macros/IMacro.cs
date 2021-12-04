@@ -8,7 +8,7 @@ namespace NPreprocessor.Macros
 
         bool AreArgumentsRequired { get; }
 
-        (List<string> result, bool finished) Invoke(ITextReader reader, State state);
+        (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state);
     }
 
     public interface IDynamicMacro : IMacro

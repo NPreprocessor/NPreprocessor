@@ -33,7 +33,7 @@ namespace NPreprocessor.Macros
             return false;
         }
 
-        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
+        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
         {
             bool resolved = false;
             string result = reader.Current.Remainder;
@@ -61,7 +61,7 @@ namespace NPreprocessor.Macros
                 reader.Current.Consume(reader.Current.Remainder.Length);
             }
 
-            return (new List<string> { result }, !resolved);
+            return (new List<TextBlock> { result }, !resolved);
         }
     }
 }

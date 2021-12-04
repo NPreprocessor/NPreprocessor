@@ -13,15 +13,15 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
-        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
+        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
         {
             var line = reader.Current.Remainder;
             var prefixLength = Pattern.Length;
             var fileName = MacroString.Trim(line.Substring(prefixLength).Trim().Trim('\"'));
-            reader.Current.Finish();
+            reader.Current.Finish(keapNewLine: true);
 
             var m4Line = $"include(`{fileName}')";
-            return (new List<string>() { m4Line }, false);
+            return (new List<TextBlock>() { m4Line }, false);
         }
     }
 }

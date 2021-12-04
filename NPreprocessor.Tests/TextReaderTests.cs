@@ -11,7 +11,7 @@ namespace NPreprocessor.Tests
             var lineReader = new TextReader("`define data Hello.\r\n`include \"data.txt\"", Environment.NewLine);
             Assert.Null(lineReader.CurrentLine);
             lineReader.MoveNext();
-            Assert.Equal("`define data Hello.", lineReader.CurrentLine);
+            Assert.Equal("`define data Hello.\r\n", lineReader.CurrentLine);
             lineReader.MoveNext();
             Assert.Equal("`include \"data.txt\"", lineReader.CurrentLine);
             lineReader.MoveNext();
@@ -27,11 +27,11 @@ namespace NPreprocessor.Tests
 4", Environment.NewLine);
             Assert.Null(lineReader.CurrentLine);
             lineReader.MoveNext();
-            Assert.Equal("1", lineReader.CurrentLine);
+            Assert.Equal("1\r\n", lineReader.CurrentLine);
             lineReader.MoveNext();
-            Assert.Equal("2", lineReader.CurrentLine);
+            Assert.Equal("2\r\n", lineReader.CurrentLine);
             lineReader.MoveNext();
-            Assert.Equal("3", lineReader.CurrentLine);
+            Assert.Equal("3\r\n", lineReader.CurrentLine);
             lineReader.MoveNext();
             Assert.Equal("4", lineReader.CurrentLine);
             lineReader.MoveNext();
@@ -44,7 +44,7 @@ namespace NPreprocessor.Tests
             var lineReader = new TextReader("1\\r\\n2\r\n3\\r\\n4", Environment.NewLine);
             Assert.Null(lineReader.CurrentLine);
             lineReader.MoveNext();
-            Assert.Equal("1\\r\\n2", lineReader.CurrentLine);
+            Assert.Equal("1\\r\\n2\r\n", lineReader.CurrentLine);
             lineReader.MoveNext();
             Assert.Equal("3\\r\\n4", lineReader.CurrentLine);
             lineReader.MoveNext();
@@ -57,7 +57,7 @@ namespace NPreprocessor.Tests
             var lineReader = new TextReader(" 1 \\r\\n 2 \r\n 3 \\r\\n 4 ", Environment.NewLine);
             Assert.Null(lineReader.CurrentLine);
             lineReader.MoveNext();
-            Assert.Equal(" 1 \\r\\n 2 ", lineReader.CurrentLine);
+            Assert.Equal(" 1 \\r\\n 2 \r\n", lineReader.CurrentLine);
             lineReader.MoveNext();
             Assert.Equal(" 3 \\r\\n 4 ", lineReader.CurrentLine);
             lineReader.MoveNext();
@@ -70,9 +70,9 @@ namespace NPreprocessor.Tests
             var lineReader = new TextReader("\r\n\r\n", Environment.NewLine);
             Assert.Null(lineReader.CurrentLine);
             lineReader.MoveNext();
-            Assert.Equal("", lineReader.CurrentLine);
+            Assert.Equal("\r\n", lineReader.CurrentLine);
             lineReader.MoveNext();
-            Assert.Equal("", lineReader.CurrentLine);
+            Assert.Equal("\r\n", lineReader.CurrentLine);
             lineReader.MoveNext();
             Assert.Null(lineReader.CurrentLine);
         }
@@ -94,9 +94,9 @@ namespace NPreprocessor.Tests
             var lineReader = new TextReader("\r\r\n\r\r\n", Environment.NewLine);
             Assert.Null(lineReader.CurrentLine);
             lineReader.MoveNext();
-            Assert.Equal("\r", lineReader.CurrentLine);
+            Assert.Equal("\r\r\n", lineReader.CurrentLine);
             lineReader.MoveNext();
-            Assert.Equal("\r", lineReader.CurrentLine);
+            Assert.Equal("\r\r\n", lineReader.CurrentLine);
             lineReader.MoveNext();
             Assert.Null(lineReader.CurrentLine);
         }
@@ -107,9 +107,9 @@ namespace NPreprocessor.Tests
             var lineReader = new TextReader("1\n2\n", "\n");
             Assert.Null(lineReader.CurrentLine);
             lineReader.MoveNext();
-            Assert.Equal("1", lineReader.CurrentLine);
+            Assert.Equal("1\n", lineReader.CurrentLine);
             lineReader.MoveNext();
-            Assert.Equal("2", lineReader.CurrentLine);
+            Assert.Equal("2\n", lineReader.CurrentLine);
             lineReader.MoveNext();
             Assert.Null(lineReader.CurrentLine);
         }

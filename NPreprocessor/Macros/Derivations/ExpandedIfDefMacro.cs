@@ -24,10 +24,12 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
-        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
+        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
         {
             var currentLine = reader.Current.Remainder;
-            reader.Current.Finish();
+            
+            reader.Current.Finish(keapNewLine: false);
+
             var prefixLength = Pattern.Length;
             var name = currentLine.Substring(prefixLength).Trim();
 
@@ -83,8 +85,8 @@ namespace NPreprocessor.Macros.Derivations
                 }
             } 
 
-            string @true = MacroString.Escape(string.Join(Environment.NewLine, trueLines));
-            string @false = MacroString.Escape(string.Join(Environment.NewLine, falseLines));
+            string @true = MacroString.Escape(string.Join(string.Empty, trueLines));
+            string @false = MacroString.Escape(string.Join(string.Empty, falseLines));
             
             string m4Line;
             if (!invert)
@@ -95,7 +97,7 @@ namespace NPreprocessor.Macros.Derivations
             {
                 m4Line = $"ifndef(`{state.DefinitionPrefix}{name}', `{@true}', `{@false}')";
             }
-            return (new List<string> { m4Line }, false);
+            return (new List<TextBlock> { m4Line }, false);
         }
 
 

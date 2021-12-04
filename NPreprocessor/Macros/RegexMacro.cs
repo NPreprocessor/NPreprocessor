@@ -13,7 +13,7 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => true;
 
-        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
+        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
         {
             var call = CallParser.GetInvocation(reader, 0, state.Definitions);
 
@@ -35,7 +35,7 @@ namespace NPreprocessor.Macros
             state.Regexes[name] = value;
 
             reader.Current.Consume(call.length);
-            return (new List<string> { String.Empty }, true);
+            return (new List<TextBlock> { }, true);
         }
     }
 }

@@ -16,41 +16,35 @@ namespace NPreprocessor
 
         public List<IMacro> Macros { get => _macros; }
 
-        public List<string> Resolve(ITextReader txtReader, State state = null)
+        public MacroResolverResult Resolve(ITextReader txtReader, State state = null)
         {
             if (state == null)
             {
                 state = new State();
             }
 
-            var result = new List<string>();
-            List<string> lastResult;
+            var result = new List<TextBlock>();
+            List<TextBlock> lastResult;
             do
             {
                 txtReader.MoveNext();
-                state.NewLinePoints += 1;
                 
                 lastResult = ProcessCurrentLine(txtReader, state);
                 if (lastResult != null)
                 {
-                    AddToResult(result, lastResult, state.CreateNewLine);
-
-                    if (state.CreateNewLine)
-                    {
-                        state.NewLinePoints -= 1;
-                    }
+                    AddToResult(result, lastResult);
                 }
             }
             while (lastResult != null);
 
-            return result;
+            return new MacroResolverResult(result, state.NewLineEnding);
         }
 
-        private List<string> ProcessCurrentLine(ITextReader txtReader, State state)
+        private List<TextBlock> ProcessCurrentLine(ITextReader txtReader, State state)
         {
             var currentLine = txtReader.Current;
             if (currentLine == null) return null;
-            var result = new List<string>();
+            var result = new List<TextBlock>();
 
             while (txtReader.Current?.Remainder != null)
             {
@@ -65,14 +59,14 @@ namespace NPreprocessor
                 }
                 else
                 {
-                    AddToResult(result, new List<string> { txtReader.Current.Remainder }, false);
+                    AddToResult(result, new List<TextBlock> { txtReader.Current.Remainder });
                     txtReader.Current.Finish();
                 }
             }
             return result;
         }
 
-        private bool ProcessMacro(ITextReader txtReader, State state, List<string> result, IMacro macroToCall, int position)
+        private bool ProcessMacro(ITextReader txtReader, State state, List<TextBlock> result, IMacro macroToCall, int position)
         {
             state.Stack.Push(macroToCall);
             var before = txtReader.Current.Remainder;
@@ -82,15 +76,19 @@ namespace NPreprocessor
 
             var macroResult = macroToCall.Invoke(txtReader, state);
 
-            var lines = macroResult.result;
+            var blocks = macroResult.result;
 
-            if (lines != null && lines.Any())
+            if (blocks != null && blocks.Any())
             {
-                lines[0] = skipped + lines[0];
+                if (skipped != string.Empty)
+                {
+                    blocks.Insert(0, new TextBlock(skipped));
+                }
 
                 if (!macroResult.finished)
                 {
-                    var cascadeTextReader = new TextReader(string.Join(state.NewLineEnding, lines), state.NewLineEnding);
+                    var cascadeText = string.Join(string.Empty, blocks.Select(l => l.Value));
+                    var cascadeTextReader = new TextReader(cascadeText, state.NewLineEnding);
                     var cascadeResult = Resolve(cascadeTextReader, new State() 
                     { 
                         Stack = new Stack<IMacro>(state.Stack), 
@@ -101,11 +99,18 @@ namespace NPreprocessor
                     });
 
 
-                    AddToResult(result, cascadeResult, state.CreateNewLine && txtReader.Current.Remainder == null);
+                    AddToResult(result, cascadeResult.Blocks);
                 }
                 else
                 {
-                    AddToResult(result, lines, state.CreateNewLine && txtReader.Current.Remainder == null);
+                    AddToResult(result, blocks);
+                }
+            }
+            else
+            {
+                if (skipped != string.Empty)
+                {
+                    result.Add(new TextBlock(skipped));
                 }
             }
 
@@ -113,17 +118,9 @@ namespace NPreprocessor
             return true;
         }
 
-        private static void AddToResult(List<string> result, List<string> toAdd, bool createNewLine)
+        private static void AddToResult(List<TextBlock> result, List<TextBlock> toAdd)
         {
-            if (!result.Any() || createNewLine)
-            {
-                result.AddRange(toAdd);
-            }
-            else
-            {
-                result[result.Count - 1] += toAdd.First();
-                result.AddRange(toAdd.Skip(1));
-            }
+            result.AddRange(toAdd);
         }
 
         private (IMacro macro, int position) FindBestMacroToCall(ITextReader txtReader, State state)

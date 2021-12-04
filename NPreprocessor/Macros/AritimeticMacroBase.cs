@@ -8,7 +8,7 @@ namespace NPreprocessor.Macros
         {
         }
 
-        protected (List<string> result, bool invoked) Invoke(ITextReader txtReader, State state, int modification)
+        protected (List<TextBlock> result, bool invoked) Invoke(ITextReader txtReader, State state, int modification)
         {
             var call = CallParser.GetInvocation(txtReader, 0, state.Definitions);
             var args = call.args;
@@ -34,7 +34,7 @@ namespace NPreprocessor.Macros
             }
             txtReader.Current.Consume(call.length);
 
-            return (new List<string> { @result.ToString() }, true);
+            return (new List<TextBlock> { @result.ToString() }, true);
         }
     }
 }

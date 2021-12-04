@@ -34,7 +34,7 @@ namespace NPreprocessor.Macros
             return false;
         }
 
-        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
+        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
         {
             bool resolved = false;
             string initial = reader.Current.Remainder;
@@ -105,7 +105,7 @@ namespace NPreprocessor.Macros
                 reader.Current.Consume(initial.Length);
             }
 
-            return (new List<string>(result.Split(Environment.NewLine)), !resolved);
+            return (new List<TextBlock>() { result }, !resolved);
         }
 
         private static string GetRegex(string key)

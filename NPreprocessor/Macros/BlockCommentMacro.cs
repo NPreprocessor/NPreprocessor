@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace NPreprocessor.Macros
 {
@@ -11,7 +10,7 @@ namespace NPreprocessor.Macros
 
         public bool IgnoreComment { get; set; } = false;
 
-        public (List<string> result, bool finished) Invoke(ITextReader reader, State state)
+        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
         {
             string candidate = reader.Current.Remainder;
 
@@ -19,7 +18,7 @@ namespace NPreprocessor.Macros
             {
                 reader.MoveNext();
 
-                candidate += Environment.NewLine + reader.Current.Remainder;
+                candidate += reader.Current.Remainder;
             }
 
             int endPosition = candidate.IndexOf("*/");
@@ -34,10 +33,10 @@ namespace NPreprocessor.Macros
             reader.Current.Consume(endPositionInCurrentLine + 2);
 
             if (IgnoreComment)
-             {
-                return (new List<string>() { string.Empty }, true);
+            {
+                return (new List<TextBlock>() { }, true);
             }
-            return (new List<string>(comment.Split(Environment.NewLine)), true);
+            return (new List<TextBlock>() { comment }, true);
         }
     }
 }

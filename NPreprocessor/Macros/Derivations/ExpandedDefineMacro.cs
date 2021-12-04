@@ -20,11 +20,11 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
-        public (List<string> result, bool finished) Invoke(ITextReader txtReader, State state)
+        public (List<TextBlock> result, bool finished) Invoke(ITextReader txtReader, State state)
         {
             string line = GetLine(txtReader);
 
-            txtReader.Current.Finish();
+            txtReader.Current.Finish(keapNewLine: true);
 
             var methodMatch = _method.Match(line);
 
@@ -40,7 +40,7 @@ namespace NPreprocessor.Macros.Derivations
                     value = Regex.Replace(value, @$"(?<=\b|\W|\s){arg}(?=\b|\W|\s)", $"${i}");
                 }
 
-                return (new List<string>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
+                return (new List<TextBlock>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
             }
             else
             {
@@ -49,11 +49,11 @@ namespace NPreprocessor.Macros.Derivations
                 {
                     var name = constMatch.Groups[1].Value;
                     var value = constMatch.Groups[2].Value.Trim();
-                    return (new List<string>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
+                    return (new List<TextBlock>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
                 }
                 else
                 {
-                    return (new List<string>() { line }, true);
+                    return (new List<TextBlock>() { line }, true);
                 }
             }
         }
@@ -68,6 +68,7 @@ namespace NPreprocessor.Macros.Derivations
             {
                 remainder = remainder.Substring(0, commentIndex);
             }
+
             return remainder;
         }
     }
