@@ -13,7 +13,7 @@ namespace NPreprocessor.Macros
         public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
         {
             string comment = reader.Current.Remainder;
-            reader.Current.Finish();
+            reader.Current.Finish(keapNewLine: true);
 
             return (new List<TextBlock>() { IgnoreComment ? string.Empty : comment }, true);
         }

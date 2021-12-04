@@ -461,6 +461,24 @@ a");
         }
 
         [Fact]
+        public void BlockCommentComplex()
+        {
+            var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
+            var reader = CreateTextReader(@"module mx (sin /* ... */); 
+	input sin; // something
+	/* ... */
+endmodule");
+
+            var results = macroResolver.Resolve(reader);
+
+            Assert.Equal(4, results.LinesCount);
+            Assert.Equal("module mx (sin ); ", results[0]);
+            Assert.Equal("	input sin; ", results[1]);
+            Assert.Equal("	", results[2]);
+            Assert.Equal("endmodule", results[3]);
+        }
+
+        [Fact]
         public void LineCommentAtStart()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(false, Environment.NewLine);
@@ -495,9 +513,11 @@ a");
 
             var results = macroResolver.Resolve(reader);
 
-            Assert.Equal(2, results.LinesCount);
+            Assert.Equal(4, results.LinesCount);
             Assert.Equal("", results[0]);
             Assert.Equal("", results[1]);
+            Assert.Equal("", results[2]);
+            Assert.Equal("", results[3]);
         }
 
         [Fact]
