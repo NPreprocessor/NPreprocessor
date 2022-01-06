@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.0-alpha-11</Version>
+    <Version>1.0.0-alpha-12</Version>
     <Copyright>Marcin Gołębiowski</Copyright>
     <PackageProjectUrl>https://github.com/CFGToolkit/NPreprocessor</PackageProjectUrl>
     <PackageTags>preprocessor .net csharp</PackageTags>
@@ -11,6 +11,8 @@
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/CFGToolkit/NPreprocessor</RepositoryUrl>
     <Description>General-purpose macro processor for .NET</Description>
+    <Company>CFGToolkit</Company>
+    <Authors>Marcin Gołębiowski</Authors>
   </PropertyGroup>
 
 </Project>

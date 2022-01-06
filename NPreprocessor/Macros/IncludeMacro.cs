@@ -12,7 +12,7 @@ namespace NPreprocessor.Macros
 
         public string Pattern => "include";
 
-        public static Func<string, string> Provider { get; set; } = (fileName) => File.ReadAllText(fileName);
+        public Func<string, string> Provider { get; set; } = (fileName) => File.ReadAllText(fileName);
 
         public DefineMacro DefineMacro { get; }
 
