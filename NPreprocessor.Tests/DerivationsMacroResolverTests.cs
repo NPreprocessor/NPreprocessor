@@ -12,18 +12,18 @@ namespace NPreprocessor.Tests
         }
 
         [Fact]
-        public void DefineDefinitonResolvesToEmpty()
+        public async void DefineDefinitonResolvesToEmpty()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
-            var result = macroResolver.Resolve(CreateLineReader("`define name1"));
+            var result = await macroResolver.Resolve(CreateLineReader("`define name1"));
 
             Assert.Equal(1, result.LinesCount);
             Assert.Equal(string.Empty, result[0]);
         }
 
         [Fact]
-        public void DefineMultilineWithArguments()
+        public async void DefineMultilineWithArguments()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
@@ -33,7 +33,7 @@ namespace NPreprocessor.Tests
 * (b)
 `op(`op(3,2),`x)");
 
-            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`"});
+            var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`"});
             Assert.Equal(3, results.LinesCount);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal(string.Empty, results[1]);
@@ -41,61 +41,61 @@ namespace NPreprocessor.Tests
         }
 
         [Fact]
-        public void DefineResolves()
+        public async void DefineResolves()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader("`define name1 Hello.\r\nname1");
-            var results = macroResolver.Resolve(reader);
+            var results = await macroResolver.Resolve(reader);
 
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("Hello.", results[1]);
         }
 
         [Fact]
-        public void DefineResolves2()
+        public async void DefineResolves2()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(false, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader("`define NOTGIVEN 123.4\r\n val=`NOTGIVEN; // Coeff");
-            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
 
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal(" val=123.4; // Coeff", results[1]);
         }
 
         [Fact]
-        public void DefineResolvesWithComplexArguments()
+        public async void DefineResolvesWithComplexArguments()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define Abc(nam,def,uni,lwr,upr,des) (*units=uni, type=""instance"", ask=""yes"", desc=des*) parameter real nam=def from(lwr:upr);
 `Abc(pname,1,1u,0,inf,something)");
-            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
 
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("(*units=1u, type=\"instance\", ask=\"yes\", desc=something*) parameter real pname=1 from(0:inf);", results[1]);
         }
 
         [Fact]
-        public void DefineResolvesWithComplexArguments2()
+        public async void DefineResolvesWithComplexArguments2()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader(@"`define op(a, b) a + b
 `op(1,4)");
-            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
 
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("1 + 4", results[1]);
         }
 
         [Fact]
-        public void DefineResolvesWithLineComments()
+        public async void DefineResolvesWithLineComments()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
@@ -103,7 +103,7 @@ namespace NPreprocessor.Tests
             var reader = CreateLineReader(@"`define abc2004 1.60217653e-19 //test
 `define xyz2000 2    // test
     x     =`abc2004*`xyz2000;");
-            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
 
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal(string.Empty, results[1]);
@@ -111,14 +111,14 @@ namespace NPreprocessor.Tests
         }
 
         [Fact]
-        public void Undefine()
+        public async void Undefine()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
             macroResolver.Macros.Add(new ExpandedUndefineMacro("`undef"));
 
             var reader = CreateLineReader("`define name1 Hello.\r\n`undef name1\r\nname1");
-            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
 
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal(string.Empty, results[1]);
@@ -126,20 +126,20 @@ namespace NPreprocessor.Tests
         }
 
         [Fact]
-        public void DefineResolvesWithPrefix()
+        public async void DefineResolvesWithPrefix()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
 
             var reader = CreateLineReader("`define name1 Hello.\r\n`name1");
-            var results = macroResolver.Resolve(reader, new State {  DefinitionPrefix = "`"});
+            var results = await macroResolver.Resolve(reader, new State {  DefinitionPrefix = "`"});
 
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("Hello.", results[1]);
         }
 
         [Fact]
-        public void DefineResolvesWithContinuation()
+        public async void DefineResolvesWithContinuation()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
@@ -147,7 +147,7 @@ namespace NPreprocessor.Tests
             var reader = CreateLineReader(@"`define name1 Hello \
 Hello.
 name1");
-            var results = macroResolver.Resolve(reader);
+            var results = await macroResolver.Resolve(reader);
 
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal(@"Hello Hello.", results[1]);
@@ -155,31 +155,31 @@ name1");
 
 
         [Fact]
-        public void DefineSupportsArguments()
+        public async void DefineSupportsArguments()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedDefineMacro("`define"));
             var reader = CreateLineReader("`define name1(arg) Hello. (arg)\r\nname1(John)");
-            var results = macroResolver.Resolve(reader);
+            var results = await macroResolver.Resolve(reader);
 
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("Hello. (John)", results[1]);
         }
 
         [Fact]
-        public void Include()
+        public async void Include()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedIncludeMacro("`include"));
 
             var reader = CreateLineReader("`include \"data.txt\"");
-            var result = macroResolver.Resolve(reader);
+            var result = await macroResolver.Resolve(reader);
             Assert.Equal(1, result.LinesCount);
             Assert.Equal("File with `data", result[0]);
         }
 
         [Fact]
-        public void IfDefString()
+        public async void IfDefString()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
@@ -190,13 +190,13 @@ name1");
     ""a\""`define y\""bc""
 `endif");
 
-            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal(@"    ""a\""`define y\""bc""", results[1]);
         }
 
         [Fact]
-        public void IfDefCase0()
+        public async void IfDefCase0()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
@@ -207,13 +207,13 @@ name1");
     electrical di2, si3;
 `endif");
 
-            var results = macroResolver.Resolve(reader, new State {  DefinitionPrefix = "`" });
+            var results = await macroResolver.Resolve(reader, new State {  DefinitionPrefix = "`" });
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    electrical di2, si3;", results[1]);
         }
 
         [Fact]
-        public void IfDefCase1()
+        public async void IfDefCase1()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
@@ -224,13 +224,13 @@ name1");
     a
 `endif");
 
-            var results = macroResolver.Resolve(reader);
+            var results = await macroResolver.Resolve(reader);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    a", results[1]);
         }
 
         [Fact]
-        public void IfNDefCase1()
+        public async void IfNDefCase1()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedIfNDefMacro("`ifndef", "`else", "`endif"));
@@ -241,14 +241,14 @@ name1");
     a
 `endif");
 
-            var results = macroResolver.Resolve(reader);
+            var results = await macroResolver.Resolve(reader);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    a", results[1]);
         }
 
 
         [Fact]
-        public void IfDefCase2()
+        public async void IfDefCase2()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
@@ -261,13 +261,13 @@ name1");
     b
 `endif");
 
-            var results = macroResolver.Resolve(reader);
+            var results = await macroResolver.Resolve(reader);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    b", results[1]);
         }
 
         [Fact]
-        public void IfDefCase3()
+        public async void IfDefCase3()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
@@ -283,7 +283,7 @@ name1");
     b
 `endif");
 
-            var results = macroResolver.Resolve(reader);
+            var results = await macroResolver.Resolve(reader);
             Assert.Equal(4, results.LinesCount);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    a1", results[1]);
@@ -292,7 +292,7 @@ name1");
         }
 
         [Fact]
-        public void IfDefCase4()
+        public async void IfDefCase4()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
@@ -309,7 +309,7 @@ name1");
 `endif
 `endif");
 
-            var results = macroResolver.Resolve(reader);
+            var results = await macroResolver.Resolve(reader);
             Assert.Equal(5, results.LinesCount);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    a1", results[1]);
@@ -319,7 +319,7 @@ name1");
         }
 
         [Fact]
-        public void IfDefCase5()
+        public async void IfDefCase5()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
@@ -338,7 +338,7 @@ name1");
 `endif
 `endif");
 
-            var results = macroResolver.Resolve(reader);
+            var results = await macroResolver.Resolve(reader);
             Assert.Equal(7, results.LinesCount);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    a1", results[1]);
@@ -350,7 +350,7 @@ name1");
         }
 
         [Fact]
-        public void IfDefCase6()
+        public async void IfDefCase6()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
@@ -362,7 +362,7 @@ name1");
     `endif
 end");
 
-            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("        a", results[1]);
             Assert.Equal("end", results[2]);
@@ -370,7 +370,7 @@ end");
 
 
         [Fact]
-        public void IfDefCase7()
+        public async void IfDefCase7()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
@@ -385,14 +385,14 @@ end");
         `endif
     `endif");
 
-            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("                        1", results[1]);
         }
 
 
         [Fact]
-        public void IfDefCase8()
+        public async void IfDefCase8()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
@@ -412,12 +412,12 @@ module D(c,b,e,s);
 `endif
 `endif");
 
-            var results = macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
             Assert.Equal("module D(c,b,e,s);", results[0]);
         }
 
         [Fact]
-        public void IfDefCase9()
+        public async void IfDefCase9()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             macroResolver.Macros.Add(new ExpandedIfDefMacro("`ifdef", "`else", "`endif"));
@@ -436,7 +436,7 @@ module D(c,b,e,s);
 `endif
 `endif");
 
-            var results = macroResolver.Resolve(reader);
+            var results = await macroResolver.Resolve(reader);
             Assert.Equal(6, results.LinesCount);
             Assert.Equal(string.Empty, results[0]);
             Assert.Equal("    a1", results[1]);

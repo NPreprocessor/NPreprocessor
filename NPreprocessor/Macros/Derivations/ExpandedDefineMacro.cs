@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros.Derivations
 {
@@ -20,7 +21,7 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
-        public (List<TextBlock> result, bool finished) Invoke(ITextReader txtReader, State state)
+        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader txtReader, State state)
         {
             string line = GetLine(txtReader);
 
@@ -40,7 +41,7 @@ namespace NPreprocessor.Macros.Derivations
                     value = Regex.Replace(value, @$"(?<=\b|\W|\s){arg}(?=\b|\W|\s)", $"${i}");
                 }
 
-                return (new List<TextBlock>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
+                return Task.FromResult((new List<TextBlock>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false));
             }
             else
             {
@@ -49,11 +50,11 @@ namespace NPreprocessor.Macros.Derivations
                 {
                     var name = constMatch.Groups[1].Value;
                     var value = constMatch.Groups[2].Value.Trim();
-                    return (new List<TextBlock>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false);
+                    return Task.FromResult((new List<TextBlock>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false));
                 }
                 else
                 {
-                    return (new List<TextBlock>() { line }, true);
+                    return Task.FromResult((new List<TextBlock>() { line }, true));
                 }
             }
         }

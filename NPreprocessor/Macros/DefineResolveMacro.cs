@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros
 {
@@ -34,7 +35,7 @@ namespace NPreprocessor.Macros
             return false;
         }
 
-        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
+        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             bool resolved = false;
             string initial = reader.Current.Remainder;
@@ -105,7 +106,7 @@ namespace NPreprocessor.Macros
                 reader.Current.Consume(initial.Length);
             }
 
-            return (new List<TextBlock>() { result }, !resolved);
+            return Task.FromResult((new List<TextBlock>() { result }, !resolved));
         }
 
         private static string GetRegex(string key)

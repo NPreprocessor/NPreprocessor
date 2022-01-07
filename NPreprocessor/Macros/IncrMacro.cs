@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros
 {
@@ -13,7 +13,7 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => true;
 
-        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
+        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             return base.Invoke(reader, state, 1);
         }

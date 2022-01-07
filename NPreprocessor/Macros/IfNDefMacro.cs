@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros
 {
@@ -12,7 +13,7 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => true;
         
-        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
+        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             var call = CallParser.GetInvocation(reader, 0, state.Definitions);
             reader.Current.Consume(call.length);
@@ -21,17 +22,17 @@ namespace NPreprocessor.Macros
 
             if (!state.Definitions.Contains(name))
             {
-                return (MacroString.GetBlocks(args[1], state.NewLineEnding), true);
+                return Task.FromResult((MacroString.GetBlocks(args[1], state.NewLineEnding), true));
             }
             else
             {
                 if (args.Length == 3)
                 {
-                    return (MacroString.GetBlocks(args[2], state.NewLineEnding), true);
+                    return Task.FromResult((MacroString.GetBlocks(args[2], state.NewLineEnding), true));
                 }
                 else
                 {
-                    return (new List<TextBlock>(), true);
+                    return Task.FromResult((new List<TextBlock>(), true));
                 }
             }
         }

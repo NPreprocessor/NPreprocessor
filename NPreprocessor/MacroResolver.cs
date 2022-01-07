@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace NPreprocessor
 {
@@ -16,7 +17,7 @@ namespace NPreprocessor
 
         public List<IMacro> Macros { get => _macros; }
 
-        public MacroResolverResult Resolve(ITextReader txtReader, State state = null)
+        public async Task<MacroResolverResult> Resolve(ITextReader txtReader, State state = null)
         {
             if (state == null)
             {
@@ -29,7 +30,7 @@ namespace NPreprocessor
             {
                 txtReader.MoveNext();
                 
-                lastResult = ProcessCurrentLine(txtReader, state);
+                lastResult = await ProcessCurrentLine(txtReader, state);
                 if (lastResult != null)
                 {
                     AddToResult(result, lastResult);
@@ -40,7 +41,7 @@ namespace NPreprocessor
             return new MacroResolverResult(result, state.NewLineEnding);
         }
 
-        private List<TextBlock> ProcessCurrentLine(ITextReader txtReader, State state)
+        private async Task<List<TextBlock>> ProcessCurrentLine(ITextReader txtReader, State state)
         {
             var currentLine = txtReader.Current;
             if (currentLine == null) return null;
@@ -52,7 +53,8 @@ namespace NPreprocessor
 
                 if (macroToCall.macro != null)
                 {
-                    if (!ProcessMacro(txtReader, state, result, macroToCall.macro, macroToCall.position))
+                    var processResult = await ProcessMacro(txtReader, state, result, macroToCall.macro, macroToCall.position);
+                    if (!processResult)
                     {
                         break;
                     }
@@ -66,7 +68,7 @@ namespace NPreprocessor
             return result;
         }
 
-        private bool ProcessMacro(ITextReader txtReader, State state, List<TextBlock> result, IMacro macroToCall, int position)
+        private async Task<bool> ProcessMacro(ITextReader txtReader, State state, List<TextBlock> result, IMacro macroToCall, int position)
         {
             state.Stack.Push(macroToCall);
             var before = txtReader.Current.Remainder;
@@ -74,7 +76,7 @@ namespace NPreprocessor
             var skipped = before.Substring(0, position);
             txtReader.Current.Consume(position);
 
-            var macroResult = macroToCall.Invoke(txtReader, state);
+            var macroResult = await macroToCall.Invoke(txtReader, state);
 
             var blocks = macroResult.result;
 
@@ -89,7 +91,7 @@ namespace NPreprocessor
                 {
                     var cascadeText = string.Join(string.Empty, blocks.Select(l => l.Value));
                     var cascadeTextReader = new TextReader(cascadeText, state.NewLineEnding);
-                    var cascadeResult = Resolve(cascadeTextReader, new State() 
+                    var cascadeResult = await Resolve(cascadeTextReader, new State() 
                     { 
                         Stack = new Stack<IMacro>(state.Stack), 
                         Definitions = state.Definitions,

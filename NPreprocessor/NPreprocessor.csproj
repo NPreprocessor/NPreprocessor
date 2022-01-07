@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.0-alpha-13</Version>
+    <Version>1.0.0-alpha-14</Version>
     <Copyright>Marcin Gołębiowski</Copyright>
     <PackageProjectUrl>https://github.com/CFGToolkit/NPreprocessor</PackageProjectUrl>
     <PackageTags>preprocessor .net csharp</PackageTags>

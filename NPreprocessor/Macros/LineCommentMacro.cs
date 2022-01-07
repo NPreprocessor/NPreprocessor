@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros
 {
@@ -10,12 +11,12 @@ namespace NPreprocessor.Macros
 
         public bool IgnoreComment { get; set; } = false;
 
-        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
+        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             string comment = reader.Current.Remainder;
             reader.Current.Finish(keapNewLine: true);
 
-            return (new List<TextBlock>() { IgnoreComment ? string.Empty : comment }, true);
+            return Task.FromResult((new List<TextBlock>() { IgnoreComment ? string.Empty : comment }, true));
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros
 {
@@ -8,7 +9,7 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => false;
 
-        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
+        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             reader.Current.Finish();
             
@@ -16,7 +17,7 @@ namespace NPreprocessor.Macros
             {
                 state.NewLinePoints -= 1;
             }
-            return (new List<TextBlock>() { }, true);
+            return Task.FromResult((new List<TextBlock>() { }, true));
         }
     }
 }

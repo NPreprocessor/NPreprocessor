@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros.Derivations
 {
@@ -13,7 +14,7 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
-        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
+        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             var line = reader.Current.Remainder;
             var prefixLength = Pattern.Length;
@@ -21,7 +22,7 @@ namespace NPreprocessor.Macros.Derivations
             reader.Current.Finish(keapNewLine: true);
 
             var m4Line = $"include(`{fileName}')";
-            return (new List<TextBlock>() { m4Line }, false);
+            return Task.FromResult((new List<TextBlock>() { m4Line }, false));
         }
     }
 }

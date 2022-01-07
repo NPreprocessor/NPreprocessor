@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros
 {
@@ -8,7 +9,7 @@ namespace NPreprocessor.Macros
 
         bool AreArgumentsRequired { get; }
 
-        (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state);
+        Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state);
     }
 
     public interface IDynamicMacro : IMacro

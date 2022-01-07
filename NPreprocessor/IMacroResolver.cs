@@ -1,5 +1,6 @@
 ﻿using NPreprocessor.Macros;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NPreprocessor
 {
@@ -7,6 +8,6 @@ namespace NPreprocessor
     {
         List<IMacro> Macros { get; }
 
-        MacroResolverResult Resolve(ITextReader txtReader, State state = null);
+        Task<MacroResolverResult> Resolve(ITextReader txtReader, State state = null);
     }
 }

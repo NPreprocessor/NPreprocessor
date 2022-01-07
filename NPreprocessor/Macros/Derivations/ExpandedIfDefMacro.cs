@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros.Derivations
 {
@@ -24,7 +25,7 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
-        public (List<TextBlock> result, bool finished) Invoke(ITextReader reader, State state)
+        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             var currentLine = reader.Current.Remainder;
             
@@ -45,7 +46,7 @@ namespace NPreprocessor.Macros.Derivations
 
                 if (reader.Current == null)
                 {
-                    return (null, false);
+                    return Task.FromResult<(List<TextBlock> result, bool finished)>((null, false));
                 }
                 else
                 {
@@ -97,7 +98,7 @@ namespace NPreprocessor.Macros.Derivations
             {
                 m4Line = $"ifndef(`{state.DefinitionPrefix}{name}', `{@true}', `{@false}')";
             }
-            return (new List<TextBlock> { m4Line }, false);
+            return Task.FromResult((new List<TextBlock> { m4Line }, false));
         }
 
 
