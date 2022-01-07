@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros
 {
@@ -12,7 +13,7 @@ namespace NPreprocessor.Macros
 
         public string Pattern => "include";
 
-        public Func<string, string> Provider { get; set; } = (fileName) => File.ReadAllText(fileName);
+        public Func<string, Task<string>> Provider { get; set; } = (fileName) => File.ReadAllTextAsync(fileName);
 
         public DefineMacro DefineMacro { get; }
 
@@ -25,7 +26,7 @@ namespace NPreprocessor.Macros
             var args = call.args;
             var fileNameExpression = args[0];
             var fileName = MacroString.Trim(fileNameExpression);
-            string fileContent = Provider(fileName);
+            string fileContent = Provider(fileName).Result;
             return (new List<TextBlock>() { fileContent }, false);
         }
     }
