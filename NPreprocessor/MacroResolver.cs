@@ -9,6 +9,7 @@ namespace NPreprocessor
     public class MacroResolver : IMacroResolver
     {
         private readonly List<IMacro> _macros = new List<IMacro>();
+        private readonly Dictionary<IMacro, Regex> _cache = new Dictionary<IMacro, Regex>();
 
         public MacroResolver(List<IMacro> macros)
         {
@@ -129,7 +130,7 @@ namespace NPreprocessor
         {
             var bestMacros = _macros
                 .Where(m => m.Pattern != null)
-                .Select(macro => (macro, Regex.Match(txtReader.Current.Remainder,  CreatePatternForMacro(macro))))
+                .Select(macro => (macro, CreateRegexForMacro(macro).Match(txtReader.Current.Remainder)))
                 .Where(macroWithMatch => macroWithMatch.Item2.Success)
                 .Select(m => (m.macro, m.Item2.Groups[1].Index))
                 .ToList();
@@ -162,6 +163,17 @@ namespace NPreprocessor
                 return @"(?<=\b|\W|\s|^)" + "(" + macro.Pattern + @"\(.*" + ")";
             }
             return @"(?<=\b|\W|\s|^)" + "(" + macro.Pattern + ")";
+        }
+
+
+        private Regex CreateRegexForMacro(IMacro macro)
+        {
+            if (!_cache.ContainsKey(macro))
+            {
+                _cache[macro] = new Regex(CreatePatternForMacro(macro));
+            }
+
+            return _cache[macro];
         }
     }
 }

@@ -7,8 +7,11 @@ namespace NPreprocessor.Macros
 {
     public class DefineMacro : IMacro
     {
+        private readonly Regex _digitMacro;
+
         public DefineMacro()
         {
+            _digitMacro = new Regex(@"\$\d+");
         }
 
         public string Pattern { get; } = "define";
@@ -38,7 +41,7 @@ namespace NPreprocessor.Macros
             {
                 var value = args[1];
                 state.Mappings[name] = MacroString.Trim(value);
-                if (Regex.IsMatch(value, @"\$\d+") || value.Contains("\"$\""))
+                if (_digitMacro.IsMatch(value) || value.Contains("\"$\""))
                 {
                     state.MappingsParameters[name] = true;
                 }
