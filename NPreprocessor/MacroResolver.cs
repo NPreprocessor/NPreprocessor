@@ -160,11 +160,10 @@ namespace NPreprocessor
         {
             if (macro.AreArgumentsRequired)
             {
-                return @"(?<=\b|\W|\s|^)" + "(" + macro.Pattern + @"\(.*" + ")";
+                return @"(?<=\b|\W|^)" + "(" + macro.Pattern + @"\(.*" + ")";
             }
-            return @"(?<=\b|\W|\s|^)" + "(" + macro.Pattern + ")";
+            return @"(?<=\b|\W|^)" + "(" + macro.Pattern + ")";
         }
-
 
         private Regex CreateRegexForMacro(IMacro macro)
         {

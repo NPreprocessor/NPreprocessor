@@ -8,6 +8,9 @@ namespace NPreprocessor.Macros
 {
     public class DefineResolveMacro : IDynamicMacro
     {
+        private readonly Dictionary<string, Regex> _cache = new Dictionary<string, Regex>();
+        private readonly Dictionary<string, Regex> _escaped = new Dictionary<string, Regex>();
+
         public DefineResolveMacro()
         {
         }
@@ -20,7 +23,7 @@ namespace NPreprocessor.Macros
         {
             string result = reader.Current.Remainder;
             var match = state.Mappings.Keys
-                .Select(key => Regex.Match(result, GetRegex(key)))
+                .Select(key => GetRegex(key).Match(result))
                 .Where(s => s.Success && !IsInsideString(result, s.Groups[1].Index, state))
                 .OrderBy(i => i.Groups[1].Index)
                 .FirstOrDefault();
@@ -42,7 +45,7 @@ namespace NPreprocessor.Macros
             string result = reader.Current.Remainder;
 
             var item = state.Mappings.Keys
-                .Select(key => (key, Regex.Match(result, GetRegex(key))))
+                .Select(key => (key, GetRegex(key).Match(result)))
                 .Where(match => match.Item2.Success && !IsInsideString(result, match.Item2.Groups[1].Index, state))
                 .OrderBy(i => i.Item2.Groups[1].Index)
                 .FirstOrDefault();
@@ -78,23 +81,22 @@ namespace NPreprocessor.Macros
                             i++;
                         }
                     }
-                    
 
                     if (call.length > 0)
                     {
                         var callString = remainder.Substring(0, call.length);
-                        var regex = new Regex(Regex.Escape(callString));
+                        var regex = GetEscapedRegex(callString);
                         result = regex.Replace(result, replacement, 1);
                     }
                     else
                     {
-                        var regex = new Regex(Regex.Escape(key));
+                        var regex = GetEscapedRegex(key);
                         result = regex.Replace(result, replacement, 1);
                     }
                 }
                 else
                 {
-                    var regex = new Regex(Regex.Escape(key));
+                    var regex = GetEscapedRegex(key);
                     result = regex.Replace(result, replacement, 1);
                 }
 
@@ -109,9 +111,24 @@ namespace NPreprocessor.Macros
             return Task.FromResult((new List<TextBlock>() { result }, !resolved));
         }
 
-        private static string GetRegex(string key)
+        private Regex GetEscapedRegex(string key)
         {
-            return @"(?<=^|\b|\s|\W)(" + Regex.Escape(key) + @")(?=\b|\s|\W)";
+            if (!_escaped.ContainsKey(key))
+            {
+                _escaped[key] = new Regex(Regex.Escape(key));
+            }
+
+            return _escaped[key];
+        }
+
+        private Regex GetRegex(string key)
+        {
+            if (!_cache.ContainsKey(key))
+            {
+                _cache[key] = new Regex(@"(?<=^|\b|\s|\W)(" + Regex.Escape(key) + @")(?=\b|\s|\W)");
+            }
+
+            return _cache[key];
         }
 
         private static bool IsInsideString(string result, int index, State state)
