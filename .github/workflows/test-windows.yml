@@ -37,6 +37,10 @@ jobs:
         run: |
           New-Item -Path .\.sonar\scanner -ItemType Directory
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner --version 5.2.0
+      - name: Setup dotnet tooling
+        uses: actions/setup-dotnet@master
+        with:
+          dotnet-version: '6.0.x'
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
