@@ -18,6 +18,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Setup dotnet tooling
+        uses: actions/setup-dotnet@master
+        with:
+          dotnet-version: '6.0.x'
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
         with:
@@ -36,11 +40,7 @@ jobs:
         shell: powershell
         run: |
           New-Item -Path .\.sonar\scanner -ItemType Directory
-          dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner --version 5.2.0
-      - name: Setup dotnet tooling
-        uses: actions/setup-dotnet@master
-        with:
-          dotnet-version: '6.0.x'
+          dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
