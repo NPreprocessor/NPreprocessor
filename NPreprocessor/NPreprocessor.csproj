@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.0-alpha-16</Version>
+    <Version>1.0.0-beta-01</Version>
     <Copyright>Marcin Gołębiowski</Copyright>
     <PackageProjectUrl>https://github.com/CFGToolkit/NPreprocessor</PackageProjectUrl>
     <PackageTags>preprocessor .net csharp</PackageTags>
@@ -13,6 +13,10 @@
     <Description>General-purpose macro processor for .NET</Description>
     <Company>CFGToolkit</Company>
     <Authors>Marcin Gołębiowski</Authors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>True</Optimize>
   </PropertyGroup>
 
 </Project>
