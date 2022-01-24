@@ -46,7 +46,7 @@ namespace NPreprocessor
                 int start = match.Index + name.Length;
                 for (i = start; i < remainder.Length; i++)
                 {
-                    if (!insideQuotes && remainder[i] == '`' && (defs == null || defs.All(d => !remainder.Substring(i).StartsWith(d))))
+                    if (!insideQuotes && remainder[i] == '`' && (defs == null || defs.All(d => !remainder.StartsWith(i, d))))
                     {
                         insideString = true;
                     }
@@ -115,7 +115,7 @@ namespace NPreprocessor
                     positions.Add(i);
                 }
 
-                if (!insideQuotes && args[i] == '`' && (defs == null || defs.All(d => !args.Substring(i).StartsWith(d))))
+                if (!insideQuotes && args[i] == '`' && (defs == null || defs.All(d => !args.StartsWith(i, d))))
                 {
                     insideString = true;
                 }

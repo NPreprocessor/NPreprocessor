@@ -133,16 +133,17 @@ namespace NPreprocessor.Macros
 
         private static bool IsInsideString(string result, int index, State state)
         {
-            var lastStartPos = result.Substring(0, index).LastIndexOf('`');
+            var lastStartPos = result.LastIndexOf(index, '`');
 
             if (lastStartPos == -1) return false;
 
-            if (state.Mappings.Keys.Any(d => result.Substring(lastStartPos).StartsWith(d)))
+            if (state.Mappings.Keys.Any(d => result.StartsWith(lastStartPos, d)))
             {
                 return false;
             }
 
             return true;
         }
+
     }
 }
