@@ -4,14 +4,15 @@
     {
         public static int LastIndexOf(this string txt, int max, char character)
         {
+            int index = -1;
             for (var i = 0; i < txt.Length && i < max; i++)
             {
                 if (txt[i] == character)
                 {
-                    return i;
+                    index = i;
                 }
             }
-            return -1;
+            return index;
         }
 
         public static bool StartsWith(this string txt, int start, string prefix)
