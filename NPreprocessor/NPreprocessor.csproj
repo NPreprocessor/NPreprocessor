@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.0-beta-02</Version>
+    <Version>1.0.0-beta-03</Version>
     <Copyright>Marcin Gołębiowski</Copyright>
     <PackageProjectUrl>https://github.com/CFGToolkit/NPreprocessor</PackageProjectUrl>
     <PackageTags>preprocessor .net csharp</PackageTags>

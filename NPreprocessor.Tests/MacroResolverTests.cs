@@ -1,6 +1,8 @@
+using NPreprocessor.Macros;
 using System;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace NPreprocessor.Tests
@@ -10,6 +12,21 @@ namespace NPreprocessor.Tests
         private static ITextReader CreateTextReader(string txt)
         {
             return new TextReader(txt, Environment.NewLine);
+        }
+
+        [Fact]
+        public async void RegexAction()
+        {
+            var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
+
+            string timeUnit = "";
+            string timePrecision = "";
+            macroResolver.Macros.Add(new RegexActionMacro(@"`timescale (\d+)(\w+)\s+\/\s+(\d+)(\w+)", (Match m) => { timeUnit = m.Groups[1].Value + m.Groups[2].Value; timePrecision = m.Groups[3].Value + m.Groups[4].Value; }, false));
+
+            var result = await macroResolver.Resolve(CreateTextReader(@"`timescale 10ms / 1ns"));
+
+            Assert.Equal("10ms", timeUnit);
+            Assert.Equal("1ns", timePrecision);
         }
 
         [Fact]
