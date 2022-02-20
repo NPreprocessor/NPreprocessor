@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NPreprocessor.Input;
+using NPreprocessor.Output;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -21,13 +23,15 @@ namespace NPreprocessor.Macros
 
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
+            int position = reader.Current.CurrentAbsolutePosition;
+            int column = reader.Current.CurrentPosition;
             state.NewLinePoints++;
-            reader.Current.Consume(Length);
+            reader.Current.Advance(Length);
 
             if (state.CreateNewLine)
             {
                 state.NewLinePoints--;
-                return Task.FromResult((new List<TextBlock>() { state.NewLineEnding }, true));
+                return Task.FromResult((new List<TextBlock>() { new TextBlock(state.NewLineEnding) { Line = reader.LineNumber, Column = column, Position = position }}, true));
             }
             else
             {

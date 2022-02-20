@@ -1,7 +1,6 @@
+using NPreprocessor.Input;
 using NPreprocessor.Macros;
 using System;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Xunit;
 

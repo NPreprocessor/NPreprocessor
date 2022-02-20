@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NPreprocessor.Input;
+using NPreprocessor.Output;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -41,6 +42,8 @@ namespace NPreprocessor.Macros
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             bool resolved = false;
+            int position = reader.Current.CurrentAbsolutePosition;
+            int column = reader.Current.CurrentPosition;
             string initial = reader.Current.Remainder;
             string result = reader.Current.Remainder;
 
@@ -105,11 +108,21 @@ namespace NPreprocessor.Macros
 
             if (resolved)
             {
-                reader.Current.Consume(initial.Length);
+                reader.Current.Advance(initial.Length);
             }
 
-            return Task.FromResult((new List<TextBlock>() { result }, !resolved));
+            return Task.FromResult((
+                new List<TextBlock>()
+                {
+                    new TextBlock(result)
+                    {
+                        Column = column,
+                        Line = reader.LineNumber,
+                        Position = position
+                    }
+                }, !resolved));
         }
+        
 
         private Regex GetEscapedRegex(string key)
         {

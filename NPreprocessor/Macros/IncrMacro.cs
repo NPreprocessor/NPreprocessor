@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using NPreprocessor.Input;
+using NPreprocessor.Output;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros

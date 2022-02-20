@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NPreprocessor.Input;
+using NPreprocessor.Output;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -33,7 +35,7 @@ namespace NPreprocessor.Macros
             {
                 throw new System.Exception("Invalid def");
             }
-            reader.Current.Consume(call.length);
+            reader.Current.Advance(call.length);
 
             var name = MacroString.Trim(args[0]);
 
@@ -57,7 +59,7 @@ namespace NPreprocessor.Macros
 
             state.Definitions.Add(name);
 
-            return Task.FromResult((new List<TextBlock> { string.Empty }, true));
+            return Task.FromResult((new List<TextBlock>(), true));
         }
     }
 }

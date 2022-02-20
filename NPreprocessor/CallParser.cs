@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NPreprocessor.Input;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;

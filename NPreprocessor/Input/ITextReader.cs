@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace NPreprocessor
+namespace NPreprocessor.Input
 {
-    public interface ITextReader : IEnumerator<ILineReader>
+    public interface ITextReader : IEnumerator<ITextLineReader>
     {
         int LineNumber { get; }
 

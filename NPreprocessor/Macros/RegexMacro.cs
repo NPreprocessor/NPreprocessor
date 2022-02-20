@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NPreprocessor.Input;
+using NPreprocessor.Output;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -35,7 +37,7 @@ namespace NPreprocessor.Macros
 
             state.Regexes[name] = value;
 
-            reader.Current.Consume(call.length);
+            reader.Current.Advance(call.length);
             return Task.FromResult((new List<TextBlock> { }, true));
         }
     }

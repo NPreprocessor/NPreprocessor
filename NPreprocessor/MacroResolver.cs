@@ -1,4 +1,6 @@
-﻿using NPreprocessor.Macros;
+﻿using NPreprocessor.Input;
+using NPreprocessor.Macros;
+using NPreprocessor.Output;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -62,7 +64,16 @@ namespace NPreprocessor
                 }
                 else
                 {
-                    AddToResult(result, new List<TextBlock> { txtReader.Current.Remainder });
+                    AddToResult(result, 
+                        new List<TextBlock>
+                        {
+                            new TextBlock(txtReader.Current.Remainder)
+                            {
+                                Column = txtReader.Current.CurrentPosition,
+                                Position = txtReader.Current.CurrentAbsolutePosition,
+                                Line = txtReader.LineNumber
+                            }
+                        });
                     txtReader.Current.Finish();
                 }
             }
@@ -75,7 +86,7 @@ namespace NPreprocessor
             var before = txtReader.Current.Remainder;
 
             var skipped = before.Substring(0, position);
-            txtReader.Current.Consume(position);
+            txtReader.Current.Advance(position);
 
             var macroResult = await macroToCall.Invoke(txtReader, state);
 

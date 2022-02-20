@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NPreprocessor.Input;
+using NPreprocessor.Output;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -28,7 +30,9 @@ namespace NPreprocessor.Macros.Derivations
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             var currentLine = reader.Current.Remainder;
-            
+            int position = reader.Current.CurrentAbsolutePosition;
+            int column = reader.Current.CurrentPosition;
+
             reader.Current.Finish(keapNewLine: false);
 
             var prefixLength = Pattern.Length;
@@ -69,7 +73,7 @@ namespace NPreprocessor.Macros.Derivations
                         count--;
                         if (count == 0)
                         {
-                            reader.Current.Consume(reader.Current.Remainder.Length);
+                            reader.Current.Advance(reader.Current.Remainder.Length);
                             continue;
                         }
                     }
@@ -98,7 +102,7 @@ namespace NPreprocessor.Macros.Derivations
             {
                 m4Line = $"ifndef(`{state.DefinitionPrefix}{name}', `{@true}', `{@false}')";
             }
-            return Task.FromResult((new List<TextBlock> { m4Line }, false));
+            return Task.FromResult((new List<TextBlock> { new TextBlock(m4Line) { Position = position, Column = column, Line = reader.LineNumber }}, false));;
         }
 
 

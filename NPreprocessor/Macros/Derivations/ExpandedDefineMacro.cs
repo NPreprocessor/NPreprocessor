@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using NPreprocessor.Input;
+using NPreprocessor.Output;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -23,6 +25,9 @@ namespace NPreprocessor.Macros.Derivations
 
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader txtReader, State state)
         {
+            int position = txtReader.Current.CurrentAbsolutePosition;
+            int column = txtReader.Current.CurrentPosition;
+
             string line = GetLine(txtReader);
 
             txtReader.Current.Finish(keapNewLine: true);
@@ -41,7 +46,7 @@ namespace NPreprocessor.Macros.Derivations
                     value = Regex.Replace(value, @$"(?<=\b|\W|\s){arg}(?=\b|\W|\s)", $"${i}");
                 }
 
-                return Task.FromResult((new List<TextBlock>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false));
+                return Task.FromResult((new List<TextBlock>() { new TextBlock($"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')") { Column = column, Position = position, Line = txtReader.LineNumber }}, false));
             }
             else
             {
@@ -50,11 +55,11 @@ namespace NPreprocessor.Macros.Derivations
                 {
                     var name = constMatch.Groups[1].Value;
                     var value = constMatch.Groups[2].Value.Trim();
-                    return Task.FromResult((new List<TextBlock>() { $"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')" }, false));
+                    return Task.FromResult((new List<TextBlock>() { new TextBlock($"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')") { Column = column, Position = position, Line = txtReader.LineNumber }}, false));
                 }
                 else
                 {
-                    return Task.FromResult((new List<TextBlock>() { line }, true));
+                    return Task.FromResult((new List<TextBlock>() { new TextBlock(line) { Column = column, Position = position, Line = txtReader.LineNumber }}, true));
                 }
             }
         }

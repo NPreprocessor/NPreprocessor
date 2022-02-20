@@ -1,43 +1,56 @@
-﻿using System.Collections.Generic;
+﻿using NPreprocessor.Input;
+using NPreprocessor.Output;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros
 {
     public class BlockCommentMacro : IMacro
-    {
-        public string Pattern => @"\/\*";
+	{
+		public string Pattern => @"\/\*";
 
-        public bool AreArgumentsRequired => false;
+		public bool AreArgumentsRequired => false;
 
-        public bool IgnoreComment { get; set; } = false;
+		public bool IgnoreComment { get; set; } = false;
 
-        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
-        {
-            string candidate = reader.Current.Remainder;
+		public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
+		{
+			int position = reader.Current.CurrentAbsolutePosition;
+			int column = reader.Current.CurrentPosition;
 
-            while (reader.Current?.Remainder != null && !candidate.Contains("*/"))
-            {
-                reader.MoveNext();
+			string candidate = reader.Current.Remainder;
 
-                candidate += reader.Current.Remainder;
-            }
+			while (reader.Current?.Remainder != null && !candidate.Contains("*/"))
+			{
+				reader.MoveNext();
 
-            int endPosition = candidate.IndexOf("*/");
+				candidate += reader.Current.Remainder;
+			}
 
-            if (endPosition == -1)
-            {
-                throw new System.Exception("Cannot find ending of block commment");
-            }
+			int endPosition = candidate.IndexOf("*/");
 
-            var comment = candidate.Substring(0, endPosition + 2);
-            int endPositionInCurrentLine = reader.Current.Remainder.IndexOf("*/");
-            reader.Current.Consume(endPositionInCurrentLine + 2);
+			if (endPosition == -1)
+			{
+				throw new System.Exception("Cannot find ending of block commment");
+			}
 
-            if (IgnoreComment)
-            {
-                return Task.FromResult((new List<TextBlock>() { }, true));
-            }
-            return Task.FromResult((new List<TextBlock>() { comment }, true));
-        }
-    }
+			var comment = candidate.Substring(0, endPosition + 2);
+			int endPositionInCurrentLine = reader.Current.Remainder.IndexOf("*/");
+			reader.Current.Advance(endPositionInCurrentLine + 2);
+
+			if (IgnoreComment)
+			{
+				return Task.FromResult((new List<TextBlock>() { }, true));
+			}
+
+			return Task.FromResult((
+				new List<TextBlock>() { 
+					new CommentTextBlock(comment)
+					{
+						Line = reader.LineNumber,
+						Position = position,
+						Column = column,
+					}}, true));
+		}
+	}
 }

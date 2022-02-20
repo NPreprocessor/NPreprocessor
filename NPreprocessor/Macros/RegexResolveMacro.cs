@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using NPreprocessor.Input;
+using NPreprocessor.Output;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -36,6 +38,8 @@ namespace NPreprocessor.Macros
 
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
+            int position = reader.Current.CurrentAbsolutePosition;
+            int column = reader.Current.CurrentPosition;
             string result = reader.Current.Remainder;
 
             var item = state.Regexes.Keys
@@ -56,13 +60,13 @@ namespace NPreprocessor.Macros
 
                 var replacementUpdated = regex.Replace(result.Substring(match.Index, match.Length), replacement, 1, index);
 
-                reader.Current.Consume(match.Value.Length);
+                reader.Current.Advance(match.Value.Length);
 
-                return Task.FromResult((new List<TextBlock> { replacementUpdated }, false));
+                return Task.FromResult((new List<TextBlock> { new TextBlock(replacementUpdated) { Column = column, Position = position, Line = reader.LineNumber }}, false));
             }
             else
             {
-                return Task.FromResult((new List<TextBlock> { result }, true));
+                return Task.FromResult((new List<TextBlock> { new TextBlock(result) { Column = column, Position = position, Line = reader.LineNumber }}, true));
             }
         }
     }

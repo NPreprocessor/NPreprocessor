@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using NPreprocessor.Input;
+using NPreprocessor.Output;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros
@@ -11,6 +13,9 @@ namespace NPreprocessor.Macros
 
         protected Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader txtReader, State state, int modification)
         {
+            int position = txtReader.Current.CurrentAbsolutePosition;
+            int column = txtReader.Current.CurrentPosition;
+            
             var call = CallParser.GetInvocation(txtReader, 0, state.Definitions);
             var args = call.args;
 
@@ -33,9 +38,16 @@ namespace NPreprocessor.Macros
                     result = exp + modification;
                 }
             }
-            txtReader.Current.Consume(call.length);
+            txtReader.Current.Advance(call.length);
 
-            return Task.FromResult((new List<TextBlock> { @result.ToString() }, true));
+            return Task.FromResult((new List<TextBlock>
+            { 
+                new TextBlock(@result.ToString()) 
+                {
+                    Line = txtReader.LineNumber, 
+                    Position = position, 
+                    Column = column 
+                }}, true));
         }
     }
 }

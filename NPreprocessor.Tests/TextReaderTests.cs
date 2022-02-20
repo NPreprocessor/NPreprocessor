@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NPreprocessor.Input;
+using System;
 using Xunit;
 
 namespace NPreprocessor.Tests

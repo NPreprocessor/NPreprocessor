@@ -1,17 +1,24 @@
-﻿namespace NPreprocessor
+﻿namespace NPreprocessor.Input
 {
-    public class LineReader : ILineReader
+    public class TextLineReader : ITextLineReader
     {
-        private int _index;
+        private int _index = 0;
 
-        public LineReader(string line, string newLineCharacters)
+        public TextLineReader(TextLine line, string newLineCharacters)
         {
-            FullLine = line;
+            Line = line;
             NewLineCharacters = newLineCharacters;
-            _index = 0;
         }
 
-        public string FullLine { get; }
+        public string FullLine => Line.Text;
+
+        public int CurrentPosition => _index;
+
+        public int CurrentAbsolutePosition => _index + Line.StartPosition;
+
+        public int LineNumber { get; set; }
+
+        public TextLine Line { get; }
 
         public string NewLineCharacters { get; }
 
@@ -35,7 +42,7 @@
             }
         }
 
-        public void Consume(int count)
+        public void Advance(int count)
         {
             _index += count;
         }

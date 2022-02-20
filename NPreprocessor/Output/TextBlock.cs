@@ -1,4 +1,4 @@
-﻿namespace NPreprocessor
+﻿namespace NPreprocessor.Output
 {
     public class TextBlock
     {
@@ -9,6 +9,10 @@
 
         public string Value { get; set; }
 
-        public static implicit operator TextBlock(string value) => new TextBlock(value);
+        public int Position { get; set; }
+
+        public int Column { get; set; }
+
+        public int Line { get; set; }
     }
 }

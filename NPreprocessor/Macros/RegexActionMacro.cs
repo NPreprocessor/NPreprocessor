@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NPreprocessor.Input;
+using NPreprocessor.Output;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -32,7 +34,7 @@ namespace NPreprocessor.Macros
             if (match.Success)
             {
                 Action?.Invoke(match);
-                reader.Current.Consume(match.Length);
+                reader.Current.Advance(match.Length);
             }
             else
             {

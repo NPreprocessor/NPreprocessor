@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 
-namespace NPreprocessor
+namespace NPreprocessor.Input
 {
     public class TextReader : ITextReader
     {
         private readonly string _newLineCharacters;
         private readonly char[] _textCharacters = null;
         private int _currentIndex = 0;
-        private ILineReader _lineReader = null;
 
         public TextReader(string text, string newLineCharacters)
         {
@@ -17,43 +14,63 @@ namespace NPreprocessor
             _textCharacters = text.ToCharArray();
         }
 
-        public int LineNumber { get; set; }
-
-        public string CurrentLine { get; set; }
-
-        public string LineContinuationCharacters { get; set; } = @"\";
-
-        private ILineReader LineReader
-        {
-            get
-            {
-                if (_lineReader == null && CurrentLine != null)
-                {
-                    _lineReader = new LineReader(CurrentLine, _newLineCharacters);
-                }
-                return _lineReader;
-            }
-        }
-
-        ILineReader IEnumerator<ILineReader>.Current => LineReader;
-       
-        object IEnumerator.Current => LineReader;
+        public string LineContinuationCharacters { get; private set; } = @"\";
 
         public string NewLineEnding => _newLineCharacters;
 
+        public int LineNumber { get; private set; }
+
+        public string CurrentLine => Current?.Remainder;
+
+        public ITextLineReader Current { get; set; }
+
+        object IEnumerator.Current => Current;
+
+        public bool MoveNext()
+        {
+            ReadLine();
+
+            return Current != null;
+        }
+
+        public void Reset()
+        {
+            _currentIndex = 0;
+        }
+
+        public bool AppendNext()
+        {
+            var current = Current;
+            ReadLine();
+            Current = new TextLineReader(
+                new TextLine
+                {
+                    Text = current.Remainder + Current.Remainder,
+                    StartPosition = _currentIndex,
+                    LineNumber = LineNumber
+                },
+                NewLineEnding);
+
+            return true;
+        }
+
+        public void Dispose()
+        {
+        }
+
         private void ReadLine()
         {
-            string result = ReadSingleLine();
+            TextLine result = ReadSingleLine();
 
             while (true)
             {
                 int nextCurrentIndex;
-                if (result != null && result.EndsWith(LineContinuationCharacters + NewLineEnding))
+                if (result != null && result.Text.EndsWith(LineContinuationCharacters + NewLineEnding))
                 {
-                    string nextLine = PeekNextLine(out nextCurrentIndex);
-                    result = result.Substring(0, result.Length - NewLineEnding.Length - LineContinuationCharacters.Length);
+                    TextLine nextLine = PeekNextLine(out nextCurrentIndex);
+                    result.Text = result.Text.Substring(0, result.Text.Length - NewLineEnding.Length - LineContinuationCharacters.Length);
                     _currentIndex = nextCurrentIndex;
-                    result += nextLine;
+                    result.Text += nextLine.Text;
                     LineNumber++;
                 }
                 else
@@ -62,10 +79,10 @@ namespace NPreprocessor
                 }
             }
 
-            CurrentLine = result;
+            Current = result != null ? new TextLineReader(result, NewLineEnding) : null;
         }
 
-        private string PeekNextLine(out int nextLineIndex)
+        private TextLine PeekNextLine(out int nextLineIndex)
         {
             var storedCurrentIndex = _currentIndex;
             var line = ReadSingleLine();
@@ -74,14 +91,14 @@ namespace NPreprocessor
             return line;
         }
 
-        private string ReadSingleLine()
+        private TextLine ReadSingleLine()
         {
             var start = _currentIndex;
 
             if (_currentIndex == _textCharacters.Length)
             {
                 _currentIndex++;
-                return String.Empty;
+                return new TextLine { Text = string.Empty, LineNumber = LineNumber, StartPosition = _currentIndex };
             }
 
             if (_currentIndex > _textCharacters.Length)
@@ -100,15 +117,13 @@ namespace NPreprocessor
 
             if (_currentIndex == _textCharacters.Length)
             {
-                var line = new string(_textCharacters, start, _currentIndex - start);
+                var line = new TextLine { Text = new string(_textCharacters, start, _currentIndex - start), StartPosition = _currentIndex, LineNumber = LineNumber };
                 _currentIndex++;
                 return line;
             }
             else
             {
-                var line = new string(_textCharacters, start, _currentIndex - start);
-                line += NewLineEnding;
-
+                var line = new TextLine { Text = new string(_textCharacters, start, _currentIndex - start) + NewLineEnding, StartPosition = _currentIndex, LineNumber = LineNumber };
                 _currentIndex += NewLineEnding.Length;
 
                 if (_currentIndex == _textCharacters.Length)
@@ -136,36 +151,6 @@ namespace NPreprocessor
             }
 
             return true;
-        }
-
-        public bool MoveNext()
-        {
-            ReadLine();
-
-            _lineReader = null;
-
-            return CurrentLine != null;
-        }
-
-        public void Reset()
-        {
-            _currentIndex = 0;
-        }
-
-        public bool AppendNext()
-        {
-            var current = LineReader.Remainder;
-            ReadLine();
-            if (CurrentLine != null)
-            {
-                _lineReader = new LineReader(current + CurrentLine, NewLineEnding);
-                return true;
-            }
-            return false;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

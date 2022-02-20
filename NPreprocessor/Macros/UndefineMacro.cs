@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using NPreprocessor.Input;
+using NPreprocessor.Output;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros
@@ -16,7 +18,7 @@ namespace NPreprocessor.Macros
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             var call = CallParser.GetInvocation(reader, 0, state.Definitions);
-            reader.Current.Consume(call.length);
+            reader.Current.Advance(call.length);
             var args = call.args;
             var name = MacroString.Trim(args[0]);
 
@@ -24,7 +26,7 @@ namespace NPreprocessor.Macros
             {
                 state.Mappings.Remove(name);
             }
-            return Task.FromResult((new List<TextBlock>() { string.Empty }, true));
+            return Task.FromResult((new List<TextBlock>(), true));
         }
     }
 }

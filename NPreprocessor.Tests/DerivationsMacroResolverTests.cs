@@ -1,3 +1,4 @@
+using NPreprocessor.Input;
 using NPreprocessor.Macros.Derivations;
 using System;
 using Xunit;
