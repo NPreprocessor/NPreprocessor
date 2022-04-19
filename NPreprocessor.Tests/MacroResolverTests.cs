@@ -560,5 +560,71 @@ endmodule");
             Assert.Equal(1, results.LinesCount);
             Assert.Equal("a b c // include(`data.txt')", results[0]);
         }
+
+        [Fact]
+        public async void IfWorks01()
+        {
+            var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
+
+            var reader = CreateTextReader(@"define(a, 1)dnl
+define(b, 1)dnl
+if(`a&&b', `TEST1', `TEST2')");
+            var results = await macroResolver.Resolve(reader);
+            Assert.Equal(1, results.LinesCount);
+            Assert.Equal("TEST1", results[0]);
+        }
+
+
+        [Fact]
+        public async void IfWorks02()
+        {
+            var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
+
+            var reader = CreateTextReader(@"define(a, 1)dnl
+define(b, 2)dnl
+if(`a == 1 && b == 2', `TEST1', `TEST2')");
+            var results = await macroResolver.Resolve(reader);
+            Assert.Equal(1, results.LinesCount);
+            Assert.Equal("TEST1", results[0]);
+        }
+
+        [Fact]
+        public async void IfWorks03()
+        {
+            var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
+
+            var reader = CreateTextReader(@"define(a, 1)dnl
+define(b, 2)dnl
+if(`a == 1 && b == 2', `TEST1')");
+            var results = await macroResolver.Resolve(reader);
+            Assert.Equal(1, results.LinesCount);
+            Assert.Equal("TEST1", results[0]);
+        }
+
+        [Fact]
+        public async void IfWorks04()
+        {
+            var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
+
+            var reader = CreateTextReader(@"define(a, 1)dnl
+define(b, 2)dnl
+if(`a == 2 && b == 2', `TEST1', `TEST@')");
+            var results = await macroResolver.Resolve(reader);
+            Assert.Equal(1, results.LinesCount);
+            Assert.Equal("TEST@", results[0]);
+        }
+
+
+        [Fact]
+        public async void IfWorks05()
+        {
+            var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
+
+            var reader = CreateTextReader(@"define(a, 1)dnl
+if(`a', `TEST1', `TEST@')");
+            var results = await macroResolver.Resolve(reader);
+            Assert.Equal(1, results.LinesCount);
+            Assert.Equal("TEST1", results[0]);
+        }
     }
 }

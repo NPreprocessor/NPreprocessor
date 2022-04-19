@@ -446,5 +446,21 @@ module D(c,b,e,s);
             Assert.Equal("    a2", results[4]);
             Assert.Equal("    a3 ", results[5]);
         }
+
+        [Fact]
+        public async void IfWorksCase01()
+        {
+            var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
+            macroResolver.Macros.Add(new ExpandedIfMacro("#if", "#else", "#endif"));
+            macroResolver.Macros.Add(new ExpandedDefineMacro("#define"));
+            var reader = CreateLineReader(@"#define x 100
+#if x > 99
+Console.WriteLine(""test"");
+#endif");
+            var results = await macroResolver.Resolve(reader);
+
+            Assert.Equal(3, results.LinesCount);
+            Assert.Equal(@"Console.WriteLine(""test"");", results[1]);
+        }
     }
 }

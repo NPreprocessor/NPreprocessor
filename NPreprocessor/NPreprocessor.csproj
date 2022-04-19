@@ -19,4 +19,8 @@
     <Optimize>True</Optimize>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CFGToolkit.ExpressionEvaluator" Version="1.0.0-alfa-05" />
+  </ItemGroup>
+
 </Project>

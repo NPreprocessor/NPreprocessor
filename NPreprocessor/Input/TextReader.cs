@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 
 namespace NPreprocessor.Input
 {
@@ -11,6 +12,12 @@ namespace NPreprocessor.Input
         public TextReader(string text, string newLineCharacters)
         {
             _newLineCharacters = newLineCharacters;
+            _textCharacters = text.ToCharArray();
+        }
+
+        public TextReader(string text)
+        {
+            _newLineCharacters = Environment.NewLine;
             _textCharacters = text.ToCharArray();
         }
 

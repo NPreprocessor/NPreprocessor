@@ -25,7 +25,9 @@ namespace NPreprocessor
             macros.Add(new RegexMacro());
             macros.Add(new RegexResolveMacro());
 
-            return new MacroResolver(macros);
+            var resolver = new MacroResolver(macros);
+            resolver.Macros.Add(new IfMacro(resolver));
+            return resolver;
         }
     }
 }
