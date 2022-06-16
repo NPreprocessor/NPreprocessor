@@ -27,13 +27,15 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
+        public int Priority { get; set; }
+
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             var currentLine = reader.Current.Remainder;
-            int position = reader.Current.CurrentAbsolutePosition;
-            int column = reader.Current.CurrentPosition;
+            int columnNumber = reader.Current.ColumnNumber;
+            int lineNumber = reader.Current.LineNumber;
 
-            reader.Current.Finish(keapNewLine: false);
+            reader.Current.Finish(keepNewLine: false);
 
             var prefixLength = Pattern.Length;
             var name = currentLine.Substring(prefixLength).Trim();
@@ -44,51 +46,42 @@ namespace NPreprocessor.Macros.Derivations
             int mode = 1;
             int count = 1;
 
-            while (count != 0)
+            while (count != 0 && reader.MoveNext())
             {
-                reader.MoveNext();
+                string line = GetLine(reader);
+                string lineTrimmed = line.TrimStart();
 
-                if (reader.Current == null)
+                if (mode == 1 && count == 1 && lineTrimmed.StartsWith(ElsePrefix))
                 {
-                    return Task.FromResult<(List<TextBlock> result, bool finished)>((null, false));
+                    mode = 2;
+                    continue;
                 }
-                else
-                {
-                    string line = GetLine(reader);
-                    string lineTrimmed = line.TrimStart();
 
-                    if (mode == 1 && count == 1 && lineTrimmed.StartsWith(ElsePrefix))
+                if (lineTrimmed.StartsWith(Pattern))
+                {
+                    count++;
+                }
+
+                if (lineTrimmed.StartsWith(EndIfPrefix))
+                {
+                    count--;
+                    if (count == 0)
                     {
-                        mode = 2;
+                        reader.Current.Advance(reader.Current.Remainder.Length);
                         continue;
                     }
-
-                    if (lineTrimmed.StartsWith(Pattern))
-                    {
-                        count++;
-                    }
-
-                    if (lineTrimmed.StartsWith(EndIfPrefix))
-                    {
-                        count--;
-                        if (count == 0)
-                        {
-                            reader.Current.Advance(reader.Current.Remainder.Length);
-                            continue;
-                        }
-                    }
-
-                    if (mode == 1)
-                    {
-                        trueLines.Add(line);
-                    }
-
-                    if (mode == 2)
-                    {
-                        falseLines.Add(line);
-                    }
                 }
-            } 
+
+                if (mode == 1)
+                {
+                    trueLines.Add(line);
+                }
+
+                if (mode == 2)
+                {
+                    falseLines.Add(line);
+                }
+            }
 
             string @true = MacroString.Escape(string.Join(string.Empty, trueLines));
             string @false = MacroString.Escape(string.Join(string.Empty, falseLines));
@@ -102,7 +95,7 @@ namespace NPreprocessor.Macros.Derivations
             {
                 m4Line = $"ifndef(`{state.DefinitionPrefix}{name}', `{@true}', `{@false}')";
             }
-            return Task.FromResult((new List<TextBlock> { new TextBlock(m4Line) { Position = position, Column = column, Line = reader.LineNumber }}, false));;
+            return Task.FromResult((new List<TextBlock> { new TextBlock(m4Line) { Column = columnNumber, Line = lineNumber }}, false));;
         }
 
 

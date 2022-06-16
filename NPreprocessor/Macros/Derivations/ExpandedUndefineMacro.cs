@@ -16,18 +16,20 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
+        public int Priority { get; set; }
+
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
-            int position = reader.Current.CurrentAbsolutePosition;
-            int column = reader.Current.CurrentPosition;
+            int columnNumber = reader.Current.ColumnNumber;
+            int lineNumber = reader.Current.LineNumber;
             var line = reader.Current.Remainder;
 
-            reader.Current.Finish(keapNewLine: true);
+            reader.Current.Finish(keepNewLine: true);
             var prefixLength = Pattern.Length;
             var name = line.Substring(prefixLength).TrimEnd('\r').TrimEnd('\n').Trim();
 
             var m4Line = "undefine(`" + state.DefinitionPrefix + name + "')";
-            return Task.FromResult((new List<TextBlock>() { new TextBlock(m4Line) { Column = column, Position = position, Line = reader.Current.LineNumber }}, false));
+            return Task.FromResult((new List<TextBlock>() { new TextBlock(m4Line) { Column = columnNumber, Line = lineNumber } }, false));
         }
     }
 }

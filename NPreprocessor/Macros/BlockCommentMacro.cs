@@ -12,11 +12,13 @@ namespace NPreprocessor.Macros
 		public bool AreArgumentsRequired => false;
 
 		public bool IgnoreComment { get; set; } = false;
+        
+		public int Priority { get; set; }
 
-		public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
+        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
 		{
-			int position = reader.Current.CurrentAbsolutePosition;
-			int column = reader.Current.CurrentPosition;
+			int column = reader.Current.ColumnNumber;
+			int line = reader.Current.LineNumber;
 
 			string candidate = reader.Current.Remainder;
 
@@ -45,10 +47,9 @@ namespace NPreprocessor.Macros
 
 			return Task.FromResult((
 				new List<TextBlock>() { 
-					new CommentTextBlock(comment)
+					new CommentBlock(comment)
 					{
-						Line = reader.LineNumber,
-						Position = position,
+						Line = line,
 						Column = column,
 					}}, true));
 		}

@@ -11,7 +11,7 @@ namespace NPreprocessor
 
             macros.Add(new NewLineMacro(newLineEnding));
             macros.Add(new BlockCommentMacro() { IgnoreComment = ignoreComments });
-            macros.Add(new LineCommentMacro() { IgnoreComment = ignoreComments });
+            macros.Add(new LineCommentMacro() { IgnoreComment = ignoreComments, Priority = -1 });
             macros.Add(new UndefineMacro());
             macros.Add(new DefineMacro());
             macros.Add(new DefineResolveMacro());
@@ -21,7 +21,6 @@ namespace NPreprocessor
             macros.Add(new DnlMacro());
             macros.Add(new IncrMacro());
             macros.Add(new DecrMacro());
-            macros.Add(new StringMacro());
             macros.Add(new RegexMacro());
             macros.Add(new RegexResolveMacro());
 

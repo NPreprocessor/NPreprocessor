@@ -29,8 +29,8 @@ namespace NPreprocessor
         }
         public static string Escape(string @string)
         {
-            @string = @string.Replace("\r", "\\r");
-            @string = @string.Replace("\n", "\\n");
+            @string = @string.Replace("\r", @"\r");
+            @string = @string.Replace("\n", @"\n");
             @string = @string.Replace("'", @"\'");
 
             return @string;
@@ -41,8 +41,8 @@ namespace NPreprocessor
             var trimmed = MacroString.Trim(line);
             var result = trimmed;
 
-            result = result.Replace("\\r", "\r");
-            result = result.Replace("\\n", "\n");
+            result = result.Replace(@"\r", "\r");
+            result = result.Replace(@"\n", "\n");
 
             return new List<string>(result.Split(newLineEnding));
         }

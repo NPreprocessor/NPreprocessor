@@ -16,17 +16,20 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
+        public int Priority { get; set; }
+
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
-            int position = reader.Current.CurrentAbsolutePosition;
-            int column = reader.Current.CurrentPosition;
+            int lineNumber = reader.Current.LineNumber;
+            int columnNumber = reader.Current.ColumnNumber;
+
             var line = reader.Current.Remainder;
             var prefixLength = Pattern.Length;
             var fileName = MacroString.Trim(line.Substring(prefixLength).Trim().Trim('\"'));
-            reader.Current.Finish(keapNewLine: true);
+            reader.Current.Finish(keepNewLine: true);
 
             var m4Line = $"include(`{fileName}')";
-            return Task.FromResult((new List<TextBlock>() { new TextBlock(m4Line) { Column = column, Position = position, Line = reader.LineNumber }}, false));
+            return Task.FromResult((new List<TextBlock>() { new TextBlock(m4Line) { Column = columnNumber, Line = lineNumber } }, false));
         }
     }
 }

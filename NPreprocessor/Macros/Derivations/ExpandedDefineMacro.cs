@@ -23,14 +23,18 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
+        public bool KeepAsComments { get; set; } = false;
+
+        public int Priority { get; set; }
+
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader txtReader, State state)
         {
-            int position = txtReader.Current.CurrentAbsolutePosition;
-            int column = txtReader.Current.CurrentPosition;
+            int lineNumber = txtReader.Current.LineNumber;
+            int columnNumber = txtReader.Current.ColumnNumber;
+            string line = txtReader.Current.Remainder;
+            string lineRaw = txtReader.Current.RemainderRaw;
 
-            string line = GetLine(txtReader);
-
-            txtReader.Current.Finish(keapNewLine: true);
+            txtReader.Current.Finish(keepNewLine: false);
 
             var methodMatch = _method.Match(line);
 
@@ -46,7 +50,18 @@ namespace NPreprocessor.Macros.Derivations
                     value = Regex.Replace(value, @$"(?<=\b|\W|\s){arg}(?=\b|\W|\s)", $"${i}");
                 }
 
-                return Task.FromResult((new List<TextBlock>() { new TextBlock($"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')") { Column = column, Position = position, Line = txtReader.LineNumber }}, false));
+                var result = new List<TextBlock>() { new TextBlock($"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')") { Column = columnNumber, Line = lineNumber } };
+
+                if (KeepAsComments)
+                {
+                    result.Insert(0, new MacroCommentBlock(lineRaw)
+                    {
+                        Column = columnNumber,
+                        Line = lineNumber,
+                    });
+                }
+
+                return Task.FromResult((result, false));
             }
             else
             {
@@ -55,27 +70,23 @@ namespace NPreprocessor.Macros.Derivations
                 {
                     var name = constMatch.Groups[1].Value;
                     var value = constMatch.Groups[2].Value.Trim();
-                    return Task.FromResult((new List<TextBlock>() { new TextBlock($"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')") { Column = column, Position = position, Line = txtReader.LineNumber }}, false));
+                    var result = new List<TextBlock>() { new TextBlock($"define(`{state.DefinitionPrefix}{name}', `{MacroString.Escape(value)}')") { Column = columnNumber, Line = lineNumber } };
+
+                    if (KeepAsComments)
+                    {
+                        result.Insert(0, new MacroCommentBlock(lineRaw)
+                        {
+                            Column = columnNumber,
+                            Line = lineNumber,
+                        });
+                    }
+                    return Task.FromResult((result, false));
                 }
                 else
                 {
-                    return Task.FromResult((new List<TextBlock>() { new TextBlock(line) { Column = column, Position = position, Line = txtReader.LineNumber }}, true));
+                    return Task.FromResult((new List<TextBlock>() { new TextBlock(line) { Column = columnNumber, Line = lineNumber } }, true));
                 }
             }
-        }
-
-        private static string GetLine(ITextReader txtReader)
-        {
-            var remainder = txtReader.Current.Remainder;
-
-            var commentIndex = remainder.IndexOf("//");
-            
-            if (commentIndex != -1)
-            {
-                remainder = remainder.Substring(0, commentIndex);
-            }
-
-            return remainder;
         }
     }
 }

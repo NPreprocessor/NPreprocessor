@@ -21,10 +21,12 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => true;
 
+        public int Priority { get; set; }
+
         public async Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
-            int position = reader.Current.CurrentAbsolutePosition;
-            int column = reader.Current.CurrentPosition;
+            int columnNumber = reader.Current.ColumnNumber;
+            int lineNumber = reader.Current.LineNumber;
 
             var call = CallParser.GetInvocation(reader, 0, state.Definitions);
             reader.Current.Advance(call.length);
@@ -33,7 +35,7 @@ namespace NPreprocessor.Macros
             var fileName = MacroString.Trim(fileNameExpression);
             string fileContent = await Provider(fileName);
 
-            return (new List<TextBlock>() { new TextBlock(fileContent) { Column = column, Position = position, Line = reader.LineNumber }}, false);
+            return (new List<TextBlock>() { new TextBlock(fileContent) { Column = columnNumber, Line = lineNumber } }, false);
         }
     }
 }

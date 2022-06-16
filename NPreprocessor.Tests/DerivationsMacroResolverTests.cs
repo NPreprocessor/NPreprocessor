@@ -35,12 +35,28 @@ namespace NPreprocessor.Tests
 `op(`op(3,2),`x)");
 
             var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`"});
-            Assert.Equal(3, results.LinesCount);
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal(string.Empty, results[1]);
-            Assert.Equal("((3) * (2)) * (111.345)", results[2]);
+            Assert.Equal(1, results.LinesCount);
+            Assert.Equal("((3) * (2)) * (111.345)", results[0]);
         }
 
+        [Fact]
+        public async void DefineMultilineWithArgumentsAndKeptAsComments()
+        {
+            var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define") { KeepAsComments = true });
+
+            var reader = CreateLineReader(@"`define x 111.345
+`define op(a,b) (a) \
+* (b)
+`op(`op(3,2),`x)");
+
+            var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            Assert.Equal(4, results.LinesCount);
+            Assert.Equal("`define x 111.345", results[0]);
+            Assert.Equal("`define op(a,b) (a) \\", results[1]);
+            Assert.Equal("* (b)", results[2]);
+            Assert.Equal("((3) * (2)) * (111.345)", results[3]);
+        }
         [Fact]
         public async void DefineResolves()
         {
@@ -50,8 +66,7 @@ namespace NPreprocessor.Tests
             var reader = CreateLineReader("`define name1 Hello.\r\nname1");
             var results = await macroResolver.Resolve(reader);
 
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("Hello.", results[1]);
+            Assert.Equal("Hello.", results[0]);
         }
 
         [Fact]
@@ -63,8 +78,7 @@ namespace NPreprocessor.Tests
             var reader = CreateLineReader("`define NOTGIVEN 123.4\r\n val=`NOTGIVEN; // Coeff");
             var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
 
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal(" val=123.4; // Coeff", results[1]);
+            Assert.Equal(" val=123.4; // Coeff", results[0]);
         }
 
         [Fact]
@@ -77,8 +91,7 @@ namespace NPreprocessor.Tests
 `Abc(pname,1,1u,0,inf,something)");
             var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
 
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("(*units=1u, type=\"instance\", ask=\"yes\", desc=something*) parameter real pname=1 from(0:inf);", results[1]);
+            Assert.Equal("(*units=1u, type=\"instance\", ask=\"yes\", desc=something*) parameter real pname=1 from(0:inf);", results[0]);
         }
 
         [Fact]
@@ -91,8 +104,7 @@ namespace NPreprocessor.Tests
 `op(1,4)");
             var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
 
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("1 + 4", results[1]);
+            Assert.Equal("1 + 4", results[0]);
         }
 
         [Fact]
@@ -122,8 +134,7 @@ namespace NPreprocessor.Tests
             var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
 
             Assert.Equal(string.Empty, results[0]);
-            Assert.Equal(string.Empty, results[1]);
-            Assert.Equal("name1", results[2]);
+            Assert.Equal("name1", results[1]);
         }
 
         [Fact]
@@ -135,8 +146,7 @@ namespace NPreprocessor.Tests
             var reader = CreateLineReader("`define name1 Hello.\r\n`name1");
             var results = await macroResolver.Resolve(reader, new State {  DefinitionPrefix = "`"});
 
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("Hello.", results[1]);
+            Assert.Equal("Hello.", results[0]);
         }
 
         [Fact]
@@ -150,8 +160,7 @@ Hello.
 name1");
             var results = await macroResolver.Resolve(reader);
 
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal(@"Hello Hello.", results[1]);
+            Assert.Equal(@"Hello Hello.", results[0]);
         }
 
 
@@ -163,8 +172,7 @@ name1");
             var reader = CreateLineReader("`define name1(arg) Hello. (arg)\r\nname1(John)");
             var results = await macroResolver.Resolve(reader);
 
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("Hello. (John)", results[1]);
+            Assert.Equal("Hello. (John)", results[0]);
         }
 
         [Fact]
@@ -192,8 +200,7 @@ name1");
 `endif");
 
             var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal(@"    ""a\""`define y\""bc""", results[1]);
+            Assert.Equal(@"    ""a\""`define y\""bc""", results[0]);
         }
 
         [Fact]
@@ -209,8 +216,7 @@ name1");
 `endif");
 
             var results = await macroResolver.Resolve(reader, new State {  DefinitionPrefix = "`" });
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("    electrical di2, si3;", results[1]);
+            Assert.Equal("    electrical di2, si3;", results[0]);
         }
 
         [Fact]
@@ -226,8 +232,7 @@ name1");
 `endif");
 
             var results = await macroResolver.Resolve(reader);
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("    a", results[1]);
+            Assert.Equal("    a", results[0]);
         }
 
         [Fact]
@@ -243,8 +248,7 @@ name1");
 `endif");
 
             var results = await macroResolver.Resolve(reader);
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("    a", results[1]);
+            Assert.Equal("    a", results[0]);
         }
 
 
@@ -263,8 +267,7 @@ name1");
 `endif");
 
             var results = await macroResolver.Resolve(reader);
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("    b", results[1]);
+            Assert.Equal("    b", results[0]);
         }
 
         [Fact]
@@ -285,11 +288,10 @@ name1");
 `endif");
 
             var results = await macroResolver.Resolve(reader);
-            Assert.Equal(4, results.LinesCount);
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("    a1", results[1]);
-            Assert.Equal("    a2", results[2]);
-            Assert.Equal("", results[3]);
+            Assert.Equal(3, results.LinesCount);
+            Assert.Equal("    a1", results[0]);
+            Assert.Equal("    a2", results[1]);
+            Assert.Equal("", results[2]);
         }
 
         [Fact]
@@ -311,12 +313,11 @@ name1");
 `endif");
 
             var results = await macroResolver.Resolve(reader);
-            Assert.Equal(5, results.LinesCount);
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("    a1", results[1]);
-            Assert.Equal("    a2", results[2]);
-            Assert.Equal("    a3", results[3]);
-            Assert.Equal("", results[4]);
+            Assert.Equal(4, results.LinesCount);
+            Assert.Equal("    a1", results[0]);
+            Assert.Equal("    a2", results[1]);
+            Assert.Equal("    a3", results[2]);
+            Assert.Equal("", results[3]);
         }
 
         [Fact]
@@ -340,14 +341,13 @@ name1");
 `endif");
 
             var results = await macroResolver.Resolve(reader);
-            Assert.Equal(7, results.LinesCount);
-            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal(6, results.LinesCount);
+            Assert.Equal("    a1", results[0]);
             Assert.Equal("    a1", results[1]);
-            Assert.Equal("    a1", results[2]);
+            Assert.Equal("    a2", results[2]);
             Assert.Equal("    a2", results[3]);
-            Assert.Equal("    a2", results[4]);
-            Assert.Equal("    a3", results[5]);
-            Assert.Equal("", results[6]);
+            Assert.Equal("    a3", results[4]);
+            Assert.Equal("", results[5]);
         }
 
         [Fact]
@@ -364,9 +364,8 @@ name1");
 end");
 
             var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("        a", results[1]);
-            Assert.Equal("end", results[2]);
+            Assert.Equal("        a", results[0]);
+            Assert.Equal("end", results[1]);
         }
 
 
@@ -387,8 +386,7 @@ end");
     `endif");
 
             var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal("                        1", results[1]);
+            Assert.Equal("                        1", results[0]);
         }
 
 
@@ -438,13 +436,12 @@ module D(c,b,e,s);
 `endif");
 
             var results = await macroResolver.Resolve(reader);
-            Assert.Equal(6, results.LinesCount);
-            Assert.Equal(string.Empty, results[0]);
+            Assert.Equal(5, results.LinesCount);
+            Assert.Equal("    a1", results[0]);
             Assert.Equal("    a1", results[1]);
-            Assert.Equal("    a1", results[2]);
+            Assert.Equal("    a2", results[2]);
             Assert.Equal("    a2", results[3]);
-            Assert.Equal("    a2", results[4]);
-            Assert.Equal("    a3 ", results[5]);
+            Assert.Equal("    a3 ", results[4]);
         }
 
         [Fact]
@@ -459,8 +456,8 @@ Console.WriteLine(""test"");
 #endif");
             var results = await macroResolver.Resolve(reader);
 
-            Assert.Equal(3, results.LinesCount);
-            Assert.Equal(@"Console.WriteLine(""test"");", results[1]);
+            Assert.Equal(2, results.LinesCount);
+            Assert.Equal(@"Console.WriteLine(""test"");", results[0]);
         }
     }
 }

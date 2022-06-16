@@ -12,11 +12,13 @@ namespace NPreprocessor.Macros
             MacroResolver = macroResolver;
         }
 
-        public string Pattern => "if";
+        public string Pattern { get; set; } =  "if";
 
         public bool AreArgumentsRequired => true;
 
         public IMacroResolver MacroResolver { get; }
+
+        public int Priority { get; set; }
 
         public async Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {

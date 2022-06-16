@@ -75,6 +75,8 @@ namespace NPreprocessor.Tests
             lineReader.MoveNext();
             Assert.Equal("\r\n", lineReader.CurrentLine);
             lineReader.MoveNext();
+            Assert.Equal("", lineReader.CurrentLine);
+            lineReader.MoveNext();
             Assert.Null(lineReader.CurrentLine);
         }
 
@@ -99,6 +101,8 @@ namespace NPreprocessor.Tests
             lineReader.MoveNext();
             Assert.Equal("\r\r\n", lineReader.CurrentLine);
             lineReader.MoveNext();
+            Assert.Equal("", lineReader.CurrentLine);
+            lineReader.MoveNext();
             Assert.Null(lineReader.CurrentLine);
         }
 
@@ -111,6 +115,19 @@ namespace NPreprocessor.Tests
             Assert.Equal("1\n", lineReader.CurrentLine);
             lineReader.MoveNext();
             Assert.Equal("2\n", lineReader.CurrentLine);
+            lineReader.MoveNext();
+            Assert.Equal("", lineReader.CurrentLine);
+            lineReader.MoveNext();
+            Assert.Null(lineReader.CurrentLine);
+        }
+
+        [Fact]
+        public void Scenario8()
+        {
+            var lineReader = new TextReader(@"1\\r\\n2", Environment.NewLine);
+            Assert.Null(lineReader.CurrentLine);
+            lineReader.MoveNext();
+            Assert.Equal(@"1\\r\\n2", lineReader.CurrentLine);
             lineReader.MoveNext();
             Assert.Null(lineReader.CurrentLine);
         }

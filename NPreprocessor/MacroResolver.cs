@@ -12,7 +12,7 @@ namespace NPreprocessor
     {
         private readonly List<IMacro> _macros = new List<IMacro>();
         private readonly Dictionary<IMacro, Regex> _cache = new Dictionary<IMacro, Regex>();
-
+        private readonly Regex _stringPattern = new Regex(@"""((?:\\.|[^\\""])*)""");
         public MacroResolver(List<IMacro> macros)
         {
             _macros = macros;           
@@ -31,7 +31,10 @@ namespace NPreprocessor
             List<TextBlock> lastResult;
             do
             {
-                txtReader.MoveNext();
+                if (!txtReader.MoveNext())
+                {
+                    return new MacroResolverResult(result, state.NewLineEnding);
+                }
                 
                 lastResult = await ProcessCurrentLine(txtReader, state);
                 if (lastResult != null)
@@ -48,30 +51,28 @@ namespace NPreprocessor
         {
             var currentLine = txtReader.Current;
             if (currentLine == null) return null;
+
+            var disabledRegions = _stringPattern.Matches(currentLine.Remainder).Select(s => (s.Index, s.Index + s.Length - 1)).ToArray();
+
             var result = new List<TextBlock>();
 
             while (txtReader.Current?.Remainder != null)
             {
-                (IMacro macro, int position) macroToCall = FindBestMacroToCall(txtReader, state);
+                (IMacro macro, int position) macroToCall = FindBestMacroToCall(txtReader, state, disabledRegions);
 
                 if (macroToCall.macro != null)
                 {
-                    var processResult = await ProcessMacro(txtReader, state, result, macroToCall.macro, macroToCall.position);
-                    if (!processResult)
-                    {
-                        break;
-                    }
+                    await ProcessMacro(txtReader, state, result, macroToCall.macro, macroToCall.position);
                 }
                 else
                 {
-                    AddToResult(result, 
+                    AddToResult(result,
                         new List<TextBlock>
                         {
                             new TextBlock(txtReader.Current.Remainder)
                             {
-                                Column = txtReader.Current.CurrentPosition,
-                                Position = txtReader.Current.CurrentAbsolutePosition,
-                                Line = txtReader.LineNumber
+                                Column = txtReader.Current.ColumnNumber,
+                                Line = txtReader.Current.LineNumber
                             }
                         });
                     txtReader.Current.Finish();
@@ -80,7 +81,7 @@ namespace NPreprocessor
             return result;
         }
 
-        private async Task<bool> ProcessMacro(ITextReader txtReader, State state, List<TextBlock> result, IMacro macroToCall, int position)
+        private async Task ProcessMacro(ITextReader txtReader, State state, List<TextBlock> result, IMacro macroToCall, int position)
         {
             state.Stack.Push(macroToCall);
             var before = txtReader.Current.Remainder;
@@ -96,24 +97,16 @@ namespace NPreprocessor
             {
                 if (skipped != string.Empty)
                 {
-                    blocks.Insert(0, new TextBlock(skipped));
+                    await ProcessText(state, result, skipped);
                 }
 
                 if (!macroResult.finished)
                 {
-                    var cascadeText = string.Join(string.Empty, blocks.Select(l => l.Value));
-                    var cascadeTextReader = new TextReader(cascadeText, state.NewLineEnding);
-                    var cascadeResult = await Resolve(cascadeTextReader, new State() 
-                    { 
-                        Stack = new Stack<IMacro>(state.Stack), 
-                        Definitions = state.Definitions,
-                        Mappings = state.Mappings,
-                        MappingsParameters = state.MappingsParameters,
-                        DefinitionPrefix = state.DefinitionPrefix
-                    });
+                    var comments = blocks.Where(b => b is CommentBlock);
+                    result.AddRange(comments);
 
-
-                    AddToResult(result, cascadeResult.Blocks);
+                    var cascadeText = string.Join(string.Empty, blocks.Where(b => b is not CommentBlock).Select(l => l.Value));
+                    await ProcessText(state, result, cascadeText);
                 }
                 else
                 {
@@ -124,12 +117,25 @@ namespace NPreprocessor
             {
                 if (skipped != string.Empty)
                 {
-                    result.Add(new TextBlock(skipped));
+                    await ProcessText(state, result, skipped);
                 }
             }
 
             state.Stack.Pop();
-            return true;
+        }
+
+        private async Task ProcessText(State state, List<TextBlock> result, string txt)
+        {
+            var textReader = new TextReader(txt, state.NewLineEnding);
+            var textResult = await Resolve(textReader, new State()
+            {
+                Stack = new Stack<IMacro>(state.Stack),
+                Definitions = state.Definitions,
+                Mappings = state.Mappings,
+                MappingsParameters = state.MappingsParameters,
+                DefinitionPrefix = state.DefinitionPrefix
+            });
+            AddToResult(result, textResult.Blocks);
         }
 
         private static void AddToResult(List<TextBlock> result, List<TextBlock> toAdd)
@@ -137,7 +143,7 @@ namespace NPreprocessor
             result.AddRange(toAdd);
         }
 
-        private (IMacro macro, int position) FindBestMacroToCall(ITextReader txtReader, State state)
+        private (IMacro macro, int position) FindBestMacroToCall(ITextReader txtReader, State state, (int start, int end)[] disabledRegions)
         {
             var bestMacros = _macros
                 .Where(m => m.Pattern != null)
@@ -154,8 +160,10 @@ namespace NPreprocessor
                 }
             }
 
-            var bestMacro = bestMacros.OrderBy(m => m.Index)
-                .FirstOrDefault();
+            var bestMacro = bestMacros
+                                .Where(b => !disabledRegions.Any(region => (region.start <= b.Index) && (region.end >= b.Index)))
+                                .OrderBy(m => m.macro.Priority)
+                                .ThenBy(m => m.Index).FirstOrDefault();
 
             if (bestMacro == default)
             {

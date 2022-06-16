@@ -2,14 +2,10 @@
 
 namespace NPreprocessor.Input
 {
-    public interface ITextReader : IEnumerator<ITextLineReader>
+    public interface ITextReader
     {
-        int LineNumber { get; }
+        LogicalLineReader Current { get; }
 
-        string LineContinuationCharacters { get; }
-
-        string NewLineEnding { get; }
-
-        bool AppendNext();
+        bool MoveNext();
     }
 }

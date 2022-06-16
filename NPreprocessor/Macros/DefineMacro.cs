@@ -20,6 +20,8 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => true;
 
+        public int Priority { get; set; }
+
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             var call = CallParser.GetInvocation(reader, 0, state.Definitions);

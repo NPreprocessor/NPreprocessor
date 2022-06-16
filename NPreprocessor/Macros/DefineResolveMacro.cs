@@ -20,6 +20,8 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => false;
 
+        public int Priority { get; set; }
+
         public bool CanBeInvoked(ITextReader reader, State state, out int index)
         {
             string result = reader.Current.Remainder;
@@ -42,8 +44,8 @@ namespace NPreprocessor.Macros
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             bool resolved = false;
-            int position = reader.Current.CurrentAbsolutePosition;
-            int column = reader.Current.CurrentPosition;
+            int column = reader.Current.ColumnNumber;
+            int line = reader.Current.LineNumber;
             string initial = reader.Current.Remainder;
             string result = reader.Current.Remainder;
 
@@ -117,8 +119,7 @@ namespace NPreprocessor.Macros
                     new TextBlock(result)
                     {
                         Column = column,
-                        Line = reader.LineNumber,
-                        Position = position
+                        Line = line
                     }
                 }, !resolved));
         }

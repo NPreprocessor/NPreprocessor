@@ -11,6 +11,8 @@ namespace NPreprocessor.Macros
 
         public bool AreArgumentsRequired => false;
 
+        public int Priority { get; set; }
+
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             reader.Current.Finish();

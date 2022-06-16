@@ -13,8 +13,8 @@ namespace NPreprocessor.Macros
 
         protected Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader txtReader, State state, int modification)
         {
-            int position = txtReader.Current.CurrentAbsolutePosition;
-            int column = txtReader.Current.CurrentPosition;
+            int line = txtReader.Current.LineNumber;
+            int column = txtReader.Current.ColumnNumber;
             
             var call = CallParser.GetInvocation(txtReader, 0, state.Definitions);
             var args = call.args;
@@ -44,8 +44,7 @@ namespace NPreprocessor.Macros
             { 
                 new TextBlock(@result.ToString()) 
                 {
-                    Line = txtReader.LineNumber, 
-                    Position = position, 
+                    Line = line, 
                     Column = column 
                 }}, true));
         }

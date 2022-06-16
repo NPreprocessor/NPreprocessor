@@ -1,163 +1,89 @@
 ﻿using System;
-using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NPreprocessor.Input
 {
     public class TextReader : ITextReader
     {
         private readonly string _newLineCharacters;
-        private readonly char[] _textCharacters = null;
-        private int _currentIndex = 0;
+        private int _logicalLineIndex = -1;
 
         public TextReader(string text, string newLineCharacters)
         {
+            Text = text;
             _newLineCharacters = newLineCharacters;
-            _textCharacters = text.ToCharArray();
+
+            Init();
         }
 
-        public TextReader(string text)
+
+        public TextReader(string text) : this(text, Environment.NewLine)
         {
-            _newLineCharacters = Environment.NewLine;
-            _textCharacters = text.ToCharArray();
         }
 
         public string LineContinuationCharacters { get; private set; } = @"\";
 
+        public string SingleLineComment { get; set; } = @"\\";
+
+
         public string NewLineEnding => _newLineCharacters;
 
-        public int LineNumber { get; private set; }
+        public string Text { get; }
+
+        public LogicalLineReader Current { get; private set; }
+
+        public List<LogicalLine> LogicalLines { get; private set; }
 
         public string CurrentLine => Current?.Remainder;
 
-        public ITextLineReader Current { get; set; }
-
-        object IEnumerator.Current => Current;
-
         public bool MoveNext()
         {
-            ReadLine();
+            _logicalLineIndex++;
 
-            return Current != null;
-        }
-
-        public void Reset()
-        {
-            _currentIndex = 0;
-        }
-
-        public bool AppendNext()
-        {
-            var current = Current;
-            ReadLine();
-            Current = new TextLineReader(
-                new TextLine
-                {
-                    Text = current.Remainder + Current.Remainder,
-                    StartPosition = _currentIndex,
-                    LineNumber = LineNumber
-                },
-                NewLineEnding);
-
-            return true;
-        }
-
-        public void Dispose()
-        {
-        }
-
-        private void ReadLine()
-        {
-            TextLine result = ReadSingleLine();
-
-            while (true)
+            if (_logicalLineIndex < LogicalLines.Count)
             {
-                int nextCurrentIndex;
-                if (result != null && result.Text.EndsWith(LineContinuationCharacters + NewLineEnding))
-                {
-                    TextLine nextLine = PeekNextLine(out nextCurrentIndex);
-                    result.Text = result.Text.Substring(0, result.Text.Length - NewLineEnding.Length - LineContinuationCharacters.Length);
-                    _currentIndex = nextCurrentIndex;
-                    result.Text += nextLine.Text;
-                    LineNumber++;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            Current = result != null ? new TextLineReader(result, NewLineEnding) : null;
-        }
-
-        private TextLine PeekNextLine(out int nextLineIndex)
-        {
-            var storedCurrentIndex = _currentIndex;
-            var line = ReadSingleLine();
-            nextLineIndex = _currentIndex;
-            _currentIndex = storedCurrentIndex;
-            return line;
-        }
-
-        private TextLine ReadSingleLine()
-        {
-            var start = _currentIndex;
-
-            if (_currentIndex == _textCharacters.Length)
-            {
-                _currentIndex++;
-                return new TextLine { Text = string.Empty, LineNumber = LineNumber, StartPosition = _currentIndex };
-            }
-
-            if (_currentIndex > _textCharacters.Length)
-            {
-                return null;
-            }
-
-            while (_currentIndex < _textCharacters.Length)
-            {
-                if (StartWith(_textCharacters, _currentIndex, NewLineEnding))
-                {
-                    break;
-                }
-                _currentIndex++;
-            }
-
-            if (_currentIndex == _textCharacters.Length)
-            {
-                var line = new TextLine { Text = new string(_textCharacters, start, _currentIndex - start), StartPosition = _currentIndex, LineNumber = LineNumber };
-                _currentIndex++;
-                return line;
+                Current = new LogicalLineReader(LogicalLines[_logicalLineIndex]);
+                return true;
             }
             else
             {
-                var line = new TextLine { Text = new string(_textCharacters, start, _currentIndex - start) + NewLineEnding, StartPosition = _currentIndex, LineNumber = LineNumber };
-                _currentIndex += NewLineEnding.Length;
-
-                if (_currentIndex == _textCharacters.Length)
-                {
-                    _currentIndex++;
-                }
-
-                LineNumber++;
-                return line;
+                Current = null;
+                return false;
             }
         }
 
-        private static bool StartWith(char[] textCharacters, int currentIndex, string newLineCharacters)
+        private void Init()
         {
-            for (var i = 0; i < newLineCharacters.Length; i++)
+            var physical = Text.Split(NewLineEnding);
+            var logicalLines = new List<LogicalLine>();
+
+            for (var i = 0; i < physical.Length; i++)
             {
-                if (currentIndex + i == textCharacters.Length)
+                var realLine = new RealLine() { LineNumber = i, Ending = i != physical.Length - 1 ? NewLineEnding : "" };
+                if (physical[i].EndsWith(LineContinuationCharacters) && !physical[i].EndsWith(SingleLineComment))
                 {
-                    return false;
+                    realLine.Text = physical[i].Substring(0, physical[i].Length - LineContinuationCharacters.Length);
+                    realLine.WithContinuation = true;
                 }
-                if (textCharacters[currentIndex + i] != newLineCharacters[i])
+                else
                 {
-                    return false;
+                    realLine.Text = physical[i];
+                }
+
+                var last = logicalLines.LastOrDefault();
+
+                if (last != null && last.Lines.Last().WithContinuation)
+                {
+                    last.Lines.Add(realLine);
+                }
+                else
+                {
+                    logicalLines.Add(new LogicalLine(new List<RealLine>() { realLine }));
                 }
             }
 
-            return true;
+            LogicalLines = logicalLines;
         }
     }
 }

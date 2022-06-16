@@ -9,8 +9,6 @@
 
         public string Value { get; set; }
 
-        public int Position { get; set; }
-
         public int Column { get; set; }
 
         public int Line { get; set; }

@@ -10,9 +10,9 @@ namespace NPreprocessor
     {
         private static Regex _macroCallPrefix = new Regex(@"([`\$\w]+)\(", RegexOptions.Singleline);
 
-        public static (string name, string[] args, int length) GetInvocation(ITextReader reader, int startIndex = 0, HashSet<string> defs = null)
+        public static (string name, string[] args, int length) GetInvocation(string text, int startIndex = 0, HashSet<string> defs = null)
         {
-            var match = GetMatch(reader.Current.Remainder, startIndex, defs);
+            var match = GetMatch(text, startIndex, defs);
 
             if (match.success)
             {
@@ -22,15 +22,28 @@ namespace NPreprocessor
 
                 return (name, args, name.Length + 2 + argsWithBrackets.Length);
             }
-            else
+
+            return default;
+        }
+
+
+        public static (string name, string[] args, int length) GetInvocation(ITextReader reader, int startIndex = 0, HashSet<string> defs = null)
+        {
+            var currentText = reader.Current.Remainder;
+
+            var call = GetInvocation(currentText, startIndex, defs);
+
+            while (call == default)
             {
-                if (reader.AppendNext())
+                if (!reader.MoveNext())
                 {
-                    return GetInvocation(reader, startIndex);
+                    break;
                 }
+                currentText += reader.Current.Remainder;
+                call = GetInvocation(currentText, startIndex, defs);
             }
 
-            return (null, null, 0);
+            return call;
         }
 
         private static (bool success, string name, string args) GetMatch(string remainder, int startIndex, HashSet<string> defs)

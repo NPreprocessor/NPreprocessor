@@ -25,13 +25,15 @@ namespace NPreprocessor.Macros.Derivations
 
         public bool AreArgumentsRequired => false;
 
+        public int Priority { get; set; }
+
         public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
         {
             var currentLine = reader.Current.Remainder;
-            int position = reader.Current.CurrentAbsolutePosition;
-            int column = reader.Current.CurrentPosition;
+            int columnNumber = reader.Current.ColumnNumber;
+            int lineNumber = reader.Current.LineNumber;
 
-            reader.Current.Finish(keapNewLine: false);
+            reader.Current.Finish(keepNewLine: false);
 
             var prefixLength = Pattern.Length;
             var expression = currentLine.Substring(prefixLength).Trim();
@@ -100,7 +102,7 @@ namespace NPreprocessor.Macros.Derivations
             {
                 m4Line = $"if(`{expression}', `{@true}', `{@false}')";
             }
-            return Task.FromResult((new List<TextBlock> { new TextBlock(m4Line) { Position = position, Column = column, Line = reader.LineNumber }}, false));;
+            return Task.FromResult((new List<TextBlock> { new TextBlock(m4Line) { Column = columnNumber, Line = lineNumber }}, false));;
         }
 
 
