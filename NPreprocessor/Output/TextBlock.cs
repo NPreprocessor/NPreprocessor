@@ -7,6 +7,8 @@
             Value = value;
         }
 
+        public bool Finished { get; set; }
+
         public string Value { get; set; }
 
         public int Column { get; set; }

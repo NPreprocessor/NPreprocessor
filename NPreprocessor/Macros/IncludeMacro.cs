@@ -23,7 +23,7 @@ namespace NPreprocessor.Macros
 
         public int Priority { get; set; }
 
-        public async Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
+        public async Task<List<TextBlock>> Invoke(ITextReader reader, State state)
         {
             int columnNumber = reader.Current.ColumnNumber;
             int lineNumber = reader.Current.LineNumber;
@@ -35,7 +35,7 @@ namespace NPreprocessor.Macros
             var fileName = MacroString.Trim(fileNameExpression);
             string fileContent = await Provider(fileName);
 
-            return (new List<TextBlock>() { new TextBlock(fileContent) { Column = columnNumber, Line = lineNumber } }, false);
+            return new List<TextBlock>() { new TextBlock(fileContent) { Column = columnNumber, Line = lineNumber } };
         }
     }
 }

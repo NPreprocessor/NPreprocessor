@@ -27,7 +27,7 @@ namespace NPreprocessor.Macros.Derivations
 
         public int Priority { get; set; }
 
-        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
+        public Task<List<TextBlock>> Invoke(ITextReader reader, State state)
         {
             var currentLine = reader.Current.Remainder;
             int columnNumber = reader.Current.ColumnNumber;
@@ -50,7 +50,7 @@ namespace NPreprocessor.Macros.Derivations
 
                 if (reader.Current == null)
                 {
-                    return Task.FromResult<(List<TextBlock> result, bool finished)>((null, false));
+                    return Task.FromResult<List<TextBlock>>(null);
                 }
                 else
                 {
@@ -102,7 +102,7 @@ namespace NPreprocessor.Macros.Derivations
             {
                 m4Line = $"if(`{expression}', `{@true}', `{@false}')";
             }
-            return Task.FromResult((new List<TextBlock> { new TextBlock(m4Line) { Column = columnNumber, Line = lineNumber }}, false));;
+            return Task.FromResult(new List<TextBlock> { new TextBlock(m4Line) { Column = columnNumber, Line = lineNumber }});
         }
 
 

@@ -18,7 +18,7 @@ namespace NPreprocessor.Macros.Derivations
 
         public int Priority { get; set; }
 
-        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
+        public Task<List<TextBlock>> Invoke(ITextReader reader, State state)
         {
             int lineNumber = reader.Current.LineNumber;
             int columnNumber = reader.Current.ColumnNumber;
@@ -29,7 +29,7 @@ namespace NPreprocessor.Macros.Derivations
             reader.Current.Finish(keepNewLine: true);
 
             var m4Line = $"include(`{fileName}')";
-            return Task.FromResult((new List<TextBlock>() { new TextBlock(m4Line) { Column = columnNumber, Line = lineNumber } }, false));
+            return Task.FromResult(new List<TextBlock>() { new TextBlock(m4Line) { Column = columnNumber, Line = lineNumber } });
         }
     }
 }

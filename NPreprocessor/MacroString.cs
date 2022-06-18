@@ -27,6 +27,7 @@ namespace NPreprocessor
 
             return value;
         }
+
         public static string Escape(string @string)
         {
             @string = @string.Replace("\r", @"\r");

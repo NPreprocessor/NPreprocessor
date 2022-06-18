@@ -31,7 +31,11 @@ namespace NPreprocessor.Input
 
         public string Text { get; }
 
-        public LogicalLineReader Current { get; private set; }
+        public LogicalLineReader Current
+        {
+            get;
+            private set;
+        }
 
         public List<LogicalLine> LogicalLines { get; private set; }
 
@@ -84,6 +88,19 @@ namespace NPreprocessor.Input
             }
 
             LogicalLines = logicalLines;
+        }
+
+        public void ReplaceCurrentLine(List<LogicalLine> logicalLines)
+        {
+            if (_logicalLineIndex == LogicalLines.Count)
+            {
+                return;
+            }
+
+            LogicalLines[_logicalLineIndex] = logicalLines[0];
+            LogicalLines.InsertRange(_logicalLineIndex + 1, logicalLines.Skip(1));
+
+            Current = new LogicalLineReader(LogicalLines[_logicalLineIndex]);
         }
     }
 }

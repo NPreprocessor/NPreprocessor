@@ -13,15 +13,10 @@ namespace NPreprocessor.Macros
 
         public int Priority { get; set; }
 
-        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
+        public Task<List<TextBlock>> Invoke(ITextReader reader, State state)
         {
-            reader.Current.Finish();
-            
-            if (state.NewLinePoints == 0)
-            {
-                state.NewLinePoints -= 1;
-            }
-            return Task.FromResult((new List<TextBlock>() { }, true));
+            reader.Current.Finish(false);
+            return Task.FromResult(new List<TextBlock>());
         }
     }
 }

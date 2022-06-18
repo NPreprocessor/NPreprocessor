@@ -41,7 +41,7 @@ namespace NPreprocessor.Macros
             return false;
         }
 
-        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
+        public Task<List<TextBlock>> Invoke(ITextReader reader, State state)
         {
             bool resolved = false;
             int column = reader.Current.ColumnNumber;
@@ -113,15 +113,16 @@ namespace NPreprocessor.Macros
                 reader.Current.Advance(initial.Length);
             }
 
-            return Task.FromResult((
+            return Task.FromResult(
                 new List<TextBlock>()
                 {
                     new TextBlock(result)
                     {
                         Column = column,
-                        Line = line
+                        Line = line,
+                        Finished = !resolved
                     }
-                }, !resolved));
+                });
         }
         
 

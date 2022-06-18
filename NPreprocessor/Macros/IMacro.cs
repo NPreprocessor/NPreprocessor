@@ -13,7 +13,7 @@ namespace NPreprocessor.Macros
 
         int Priority { get; set; }
 
-        Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state);
+        Task<List<TextBlock>> Invoke(ITextReader reader, State state);
     }
 
     public interface IDynamicMacro : IMacro

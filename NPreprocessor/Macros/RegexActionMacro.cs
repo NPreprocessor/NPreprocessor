@@ -26,7 +26,7 @@ namespace NPreprocessor.Macros
 
         public int Priority { get; set; }
 
-        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
+        public Task<List<TextBlock>> Invoke(ITextReader reader, State state)
         {
             string currentReminder = reader.Current.Remainder;
             var blocks = new List<TextBlock>();
@@ -45,10 +45,10 @@ namespace NPreprocessor.Macros
 
             if (!Ignore)
             {
-                blocks.Add(new TextBlock(currentReminder));
+                blocks.Add(new TextBlock(currentReminder) { Finished = true });
             }
 
-            return Task.FromResult((blocks, true));
+            return Task.FromResult(blocks);
         }
     }
 }

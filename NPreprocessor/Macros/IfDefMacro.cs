@@ -17,7 +17,7 @@ namespace NPreprocessor.Macros
 
         public int Priority { get; set; }
 
-        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
+        public Task<List<TextBlock>> Invoke(ITextReader reader, State state)
         {
             var call = CallParser.GetInvocation(reader, 0, state.Definitions);
             reader.Current.Advance(call.length);
@@ -26,17 +26,17 @@ namespace NPreprocessor.Macros
 
             if (state.Definitions.Contains(name))
             {
-                return Task.FromResult((MacroString.GetBlocks(args[1], state.NewLineEnding), false));
+                return Task.FromResult(MacroString.GetBlocks(args[1], state.NewLineEnding));
             }
             else
             {
                 if (args.Length == 3)
                 {
-                    return Task.FromResult((MacroString.GetBlocks(args[2], state.NewLineEnding), false));
+                    return Task.FromResult(MacroString.GetBlocks(args[2], state.NewLineEnding));
                 }
                 else
                 {
-                    return Task.FromResult((new List<TextBlock>(), true));
+                    return Task.FromResult(new List<TextBlock>());
                 }
             }
         }

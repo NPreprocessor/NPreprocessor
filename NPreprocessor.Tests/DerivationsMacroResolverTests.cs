@@ -57,6 +57,23 @@ namespace NPreprocessor.Tests
             Assert.Equal("* (b)", results[2]);
             Assert.Equal("((3) * (2)) * (111.345)", results[3]);
         }
+
+        [Fact]
+        public async void DefineWithComment()
+        {
+            var macroResolver = MacroResolverFactory.CreateDefault(false, Environment.NewLine);
+            macroResolver.Macros.Add(new ExpandedDefineMacro("`define") { KeepAsComments = true });
+
+            var reader = CreateLineReader(@"`define x 111.345 // something
+`x");
+
+
+            var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
+            Assert.Equal(2, results.LinesCount);
+            Assert.Equal(@"`define x 111.345 // something", results[0]);
+            Assert.Equal("111.345", results[1]);
+        }
+
         [Fact]
         public async void DefineResolves()
         {
@@ -118,9 +135,8 @@ namespace NPreprocessor.Tests
     x     =`abc2004*`xyz2000;");
             var results = await macroResolver.Resolve(reader, new State { DefinitionPrefix = "`" });
 
-            Assert.Equal(string.Empty, results[0]);
-            Assert.Equal(string.Empty, results[1]);
-            Assert.Equal("    x     =1.60217653e-19*2;", results[2]);
+            Assert.Equal(1, results.LinesCount);
+            Assert.Equal("    x     =1.60217653e-19*2;", results[0]);
         }
 
         [Fact]
@@ -443,6 +459,7 @@ module D(c,b,e,s);
             Assert.Equal("    a2", results[3]);
             Assert.Equal("    a3 ", results[4]);
         }
+
 
         [Fact]
         public async void IfWorksCase01()

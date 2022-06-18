@@ -19,8 +19,10 @@ namespace NPreprocessor.Input
 
         public bool KeepNewLine { get; private set; } = false;
 
-        public string Remainder => Finished ? (KeepNewLine ? LogicalLine.Ending: null) : ((CurrentPhysicalLineReminder ?? "") + string.Join(string.Empty, LogicalLine.Lines.Skip(_currentLineIndex + 1).Select(l => l.Text)) + LogicalLine.Ending);
-        
+        public string Remainder => Finished ? (KeepNewLine ? LogicalLine.Ending : null) : ((CurrentPhysicalLineReminder ?? "") + string.Join(string.Empty, LogicalLine.Lines.Skip(_currentLineIndex + 1).Select(l => l.Text)) + LogicalLine.Ending);
+
+        public string RemainderWithoutNewLine => Finished ? null : ((CurrentPhysicalLineReminder ?? "") + string.Join(string.Empty, LogicalLine.Lines.Skip(_currentLineIndex + 1).Select(l => l.Text)));
+
         public string RemainderRaw => Finished ? (KeepNewLine ? LogicalLine.Ending : null) : ((CurrentPhysicalLineReminder ?? "") + (LogicalLine.Lines.Count > 1 ? ("\\" + LogicalLine.Ending) : "") +  string.Join("\\" + LogicalLine.Ending, LogicalLine.Lines.Skip(_currentLineIndex + 1).Select(l => l.Text)) + LogicalLine.Ending);
 
         public string CurrentPhysicalLineReminder => Finished ? null : CurrentRealLine.Text.Substring(_currentColumnIndex);

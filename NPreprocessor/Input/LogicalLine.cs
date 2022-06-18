@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NPreprocessor.Input
 {
@@ -13,5 +15,7 @@ namespace NPreprocessor.Input
 
 
         public string Ending => Lines[Lines.Count - 1].Ending;
+
+        public string Text => string.Join(Environment.NewLine, Lines.Select(l => l.Text));
     }
 }

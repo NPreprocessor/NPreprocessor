@@ -15,7 +15,7 @@ namespace NPreprocessor.Macros
         
 		public int Priority { get; set; }
 
-        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
+        public Task<List<TextBlock>> Invoke(ITextReader reader, State state)
 		{
 			int column = reader.Current.ColumnNumber;
 			int line = reader.Current.LineNumber;
@@ -42,16 +42,17 @@ namespace NPreprocessor.Macros
 
 			if (IgnoreComment)
 			{
-				return Task.FromResult((new List<TextBlock>() { }, true));
+				return Task.FromResult(new List<TextBlock>() { });
 			}
 
-			return Task.FromResult((
+			return Task.FromResult(
 				new List<TextBlock>() { 
 					new CommentBlock(comment)
 					{
 						Line = line,
 						Column = column,
-					}}, true));
+						Finished = true
+					}});
 		}
 	}
 }

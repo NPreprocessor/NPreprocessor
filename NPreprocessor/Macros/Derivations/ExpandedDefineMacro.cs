@@ -27,11 +27,11 @@ namespace NPreprocessor.Macros.Derivations
 
         public int Priority { get; set; }
 
-        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader txtReader, State state)
+        public Task<List<TextBlock>> Invoke(ITextReader txtReader, State state)
         {
             int lineNumber = txtReader.Current.LineNumber;
             int columnNumber = txtReader.Current.ColumnNumber;
-            string line = txtReader.Current.Remainder;
+            string line = GetLine(txtReader.Current.Remainder);
             string lineRaw = txtReader.Current.RemainderRaw;
 
             txtReader.Current.Finish(keepNewLine: false);
@@ -58,10 +58,11 @@ namespace NPreprocessor.Macros.Derivations
                     {
                         Column = columnNumber,
                         Line = lineNumber,
+                        Finished = true
                     });
                 }
 
-                return Task.FromResult((result, false));
+                return Task.FromResult(result);
             }
             else
             {
@@ -78,15 +79,27 @@ namespace NPreprocessor.Macros.Derivations
                         {
                             Column = columnNumber,
                             Line = lineNumber,
+                            Finished = true
                         });
                     }
-                    return Task.FromResult((result, false));
+                    return Task.FromResult(result);
                 }
                 else
                 {
-                    return Task.FromResult((new List<TextBlock>() { new TextBlock(line) { Column = columnNumber, Line = lineNumber } }, true));
+                    return Task.FromResult(new List<TextBlock>() { new TextBlock(line) { Column = columnNumber, Line = lineNumber, Finished = true } });
                 }
             }
+        }
+        private static string GetLine(string fullLine)
+        {
+            var commentIndex = fullLine.IndexOf("//");
+
+            if (commentIndex != -1)
+            {
+                fullLine = fullLine.Substring(0, commentIndex);
+            }
+
+            return fullLine;
         }
     }
 }

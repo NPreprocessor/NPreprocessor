@@ -33,7 +33,7 @@ namespace NPreprocessor.Tests
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             var result = await macroResolver.Resolve(CreateTextReader(
-@"regex(`if', `Token(IF)')dnl
+@"regex(`if',`Token(IF)')dnl
 regex(`([0-9]+)', `Token(NUMBER, $1)')dnl
 if 
 1234"));
@@ -47,18 +47,12 @@ if
         {
             var macroResolver = MacroResolverFactory.CreateDefault(true, Environment.NewLine);
             var result = await macroResolver.Resolve(CreateTextReader(
-@"regex(`if', `Token(IF)')dnl
+@"regex(`(if)', `Token(IF)')dnl
 regex(`([0-9]+)', `Token(NUMBER, $1)')dnl
-regex(`\s+', `Token(WHITESPACES)')dnl
+regex(`(\s+)', `Token(WHITESPACES)')dnl
 if 1234"));
             Assert.Equal(1, result.LinesCount);
             Assert.Equal("Token(IF)Token(WHITESPACES)Token(NUMBER, 1234)", result[0]);
-            Assert.Equal(4, result.Blocks.Count);
-            Assert.Equal("Token(IF)", result.Blocks[0].Value);
-            Assert.Equal("Token(WHITESPACES)", result.Blocks[1].Value);
-            Assert.Equal("Token(NUMBER, 1234)", result.Blocks[2].Value);
-            Assert.Equal("", result.Blocks[3].Value);
-
         }
 
         [Fact]

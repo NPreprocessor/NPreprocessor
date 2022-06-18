@@ -29,7 +29,7 @@ namespace NPreprocessor.Macros.Derivations
 
         public int Priority { get; set; }
 
-        public Task<(List<TextBlock> result, bool finished)> Invoke(ITextReader reader, State state)
+        public Task<List<TextBlock>> Invoke(ITextReader reader, State state)
         {
             var currentLine = reader.Current.Remainder;
             int columnNumber = reader.Current.ColumnNumber;
@@ -46,8 +46,14 @@ namespace NPreprocessor.Macros.Derivations
             int mode = 1;
             int count = 1;
 
-            while (count != 0 && reader.MoveNext())
+            while (count != 0)
             {
+                if (!reader.MoveNext())
+                {
+                    break;
+                }
+
+
                 string line = GetLine(reader);
                 string lineTrimmed = line.TrimStart();
 
@@ -95,10 +101,8 @@ namespace NPreprocessor.Macros.Derivations
             {
                 m4Line = $"ifndef(`{state.DefinitionPrefix}{name}', `{@true}', `{@false}')";
             }
-            return Task.FromResult((new List<TextBlock> { new TextBlock(m4Line) { Column = columnNumber, Line = lineNumber }}, false));;
+            return Task.FromResult(new List<TextBlock> { new TextBlock(m4Line) { Column = columnNumber, Line = lineNumber }});
         }
-
-
         private static string GetLine(ITextReader txtReader)
         {
             var remainder = txtReader.Current.Remainder;
@@ -118,6 +122,7 @@ namespace NPreprocessor.Macros.Derivations
             if (commentIndex != -1 && !insideQuotes)
             {
                 remainder = remainder.Substring(0, commentIndex);
+                remainder += "\r\n";
             }
             return remainder;
         }
