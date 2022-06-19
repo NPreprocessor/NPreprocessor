@@ -26,7 +26,7 @@ namespace NPreprocessor.Macros
 
             var match = state.Regexes.Keys
                 .Select(key => Regex.Match(result, key))
-                .Where(s => s.Success && !state.CurrentLineDisabledRanges.Any(region => (region.start <= s.Groups[1].Index + diff) && (region.end >= s.Groups[1].Index + diff)))
+                .Where(s => s.Success)
                 .OrderBy(i => i.Groups[1].Index)
                 .FirstOrDefault();
 
@@ -50,7 +50,7 @@ namespace NPreprocessor.Macros
 
             var item = state.Regexes.Keys
                 .Select(key => (key, Regex.Match(result, key)))
-                .Where(match => match.Item2.Success && !state.CurrentLineDisabledRanges.Any(region => (region.start <= match.Item2.Groups[1].Index + diff) && (region.end >= match.Item2.Groups[1].Index + diff)))
+                .Where(match => match.Item2.Success)
                 .OrderBy(i => i.Item2.Groups[1].Index)
                 .FirstOrDefault();
 

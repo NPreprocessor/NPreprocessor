@@ -439,7 +439,7 @@ a");
 
 
         [Fact]
-        public async void BlockCommentMulitpleLines()
+        public async void BlockCommentMultipleLines()
         {
             var macroResolver = MacroResolverFactory.CreateDefault(false, Environment.NewLine);
             var reader = CreateTextReader(@"dfg /* include(`data.txt')

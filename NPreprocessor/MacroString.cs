@@ -37,6 +37,15 @@ namespace NPreprocessor
             return @string;
         }
 
+        public static string DeEscape(string @string)
+        {
+            @string = @string.Replace("\\r", "\r");
+            @string = @string.Replace("\\n", "\n");
+            @string = @string.Replace(@"\'", "'");
+
+            return @string;
+        }
+
         public static List<string> GetLines(string @line, string newLineEnding)
         {
             var trimmed = MacroString.Trim(line);
@@ -48,7 +57,7 @@ namespace NPreprocessor
             return new List<string>(result.Split(newLineEnding));
         }
 
-        public static List<TextBlock> GetBlocks(string @line, string newLineEnding)
+        public static List<TextBlock> GetBlocks(string @line, string newLineEnding, int startLineNumber)
         {
             var lines = GetLines(line, newLineEnding);
 
@@ -62,7 +71,7 @@ namespace NPreprocessor
                 }
             }
 
-            return new List<TextBlock>(linesPrim.Select(l => new TextBlock(l)));
+            return new List<TextBlock>(linesPrim.Select(l => new TextBlock(l) {  Line = startLineNumber++, Column = 0}));
         }
     }
 }

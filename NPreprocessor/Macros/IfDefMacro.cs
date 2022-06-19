@@ -19,6 +19,8 @@ namespace NPreprocessor.Macros
 
         public Task<List<TextBlock>> Invoke(ITextReader reader, State state)
         {
+            int lineNumber = reader.Current.LineNumber;
+
             var call = CallParser.GetInvocation(reader, 0, state.Definitions);
             reader.Current.Advance(call.length);
             var args = call.args;
@@ -26,13 +28,13 @@ namespace NPreprocessor.Macros
 
             if (state.Definitions.Contains(name))
             {
-                return Task.FromResult(MacroString.GetBlocks(args[1], state.NewLineEnding));
+                return Task.FromResult(MacroString.GetBlocks(args[1], state.NewLineEnding, args.Length >= 4 ? int.Parse(args[3]): lineNumber));
             }
             else
             {
-                if (args.Length == 3)
+                if (args.Length >= 3)
                 {
-                    return Task.FromResult(MacroString.GetBlocks(args[2], state.NewLineEnding));
+                    return Task.FromResult(MacroString.GetBlocks(args[2], state.NewLineEnding, args.Length >= 4 ? int.Parse(args[4]): lineNumber));
                 }
                 else
                 {

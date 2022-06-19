@@ -9,8 +9,6 @@ namespace NPreprocessor
         public State()
         {
         }
-        public List<(int start, int end)> CurrentLineDisabledRanges { get; set; }
-
         public Dictionary<string, string> Regexes { get; set; } = new Dictionary<string, string>();
 
         public Dictionary<string, string> Mappings { get; set; } = new Dictionary<string, string>();

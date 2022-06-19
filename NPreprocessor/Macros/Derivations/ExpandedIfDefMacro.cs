@@ -34,6 +34,7 @@ namespace NPreprocessor.Macros.Derivations
             var currentLine = reader.Current.Remainder;
             int columnNumber = reader.Current.ColumnNumber;
             int lineNumber = reader.Current.LineNumber;
+            
 
             reader.Current.Finish(keepNewLine: false);
 
@@ -45,6 +46,8 @@ namespace NPreprocessor.Macros.Derivations
 
             int mode = 1;
             int count = 1;
+            int elseStart = 0;
+            int thenStart = lineNumber + 1;
 
             while (count != 0)
             {
@@ -57,15 +60,19 @@ namespace NPreprocessor.Macros.Derivations
                 string line = GetLine(reader);
                 string lineTrimmed = line.TrimStart();
 
-                if (mode == 1 && count == 1 && lineTrimmed.StartsWith(ElsePrefix))
-                {
-                    mode = 2;
-                    continue;
-                }
-
                 if (lineTrimmed.StartsWith(Pattern))
                 {
                     count++;
+                }
+
+                if (mode == 1 && count == 1 && lineTrimmed.StartsWith(ElsePrefix))
+                {
+                    if (elseStart == 0)
+                    {
+                        elseStart = reader.Current.LineNumber + 1;
+                    }
+                    mode = 2;
+                    continue;
                 }
 
                 if (lineTrimmed.StartsWith(EndIfPrefix))
@@ -95,11 +102,11 @@ namespace NPreprocessor.Macros.Derivations
             string m4Line;
             if (!invert)
             {
-                m4Line = $"ifdef(`{state.DefinitionPrefix}{name}', `{@true}', `{@false}')";
+                m4Line = $"ifdef(`{state.DefinitionPrefix}{name}', `{@true}', `{@false}', {thenStart}, {elseStart})";
             }
             else
             {
-                m4Line = $"ifndef(`{state.DefinitionPrefix}{name}', `{@true}', `{@false}')";
+                m4Line = $"ifndef(`{state.DefinitionPrefix}{name}', `{@true}', `{@false}', {thenStart}, {elseStart})";
             }
             return Task.FromResult(new List<TextBlock> { new TextBlock(m4Line) { Column = columnNumber, Line = lineNumber }});
         }

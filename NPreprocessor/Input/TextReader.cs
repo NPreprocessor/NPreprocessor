@@ -7,13 +7,14 @@ namespace NPreprocessor.Input
     public class TextReader : ITextReader
     {
         private readonly string _newLineCharacters;
+        private readonly int _startLine;
         private int _logicalLineIndex = -1;
 
-        public TextReader(string text, string newLineCharacters)
+        public TextReader(string text, string newLineCharacters, int startLine = 1)
         {
             Text = text;
             _newLineCharacters = newLineCharacters;
-
+            _startLine = startLine;
             Init();
         }
 
@@ -64,7 +65,7 @@ namespace NPreprocessor.Input
 
             for (var i = 0; i < physical.Length; i++)
             {
-                var realLine = new RealLine() { LineNumber = i, Ending = i != physical.Length - 1 ? NewLineEnding : "" };
+                var realLine = new RealLine() { LineNumber = i + _startLine, Ending = i != physical.Length - 1 ? NewLineEnding : "" };
                 if (physical[i].EndsWith(LineContinuationCharacters) && !physical[i].EndsWith(SingleLineComment))
                 {
                     realLine.Text = physical[i].Substring(0, physical[i].Length - LineContinuationCharacters.Length);
@@ -74,7 +75,6 @@ namespace NPreprocessor.Input
                 {
                     realLine.Text = physical[i];
                 }
-
                 var last = logicalLines.LastOrDefault();
 
                 if (last != null && last.Lines.Last().WithContinuation)
@@ -88,19 +88,6 @@ namespace NPreprocessor.Input
             }
 
             LogicalLines = logicalLines;
-        }
-
-        public void ReplaceCurrentLine(List<LogicalLine> logicalLines)
-        {
-            if (_logicalLineIndex == LogicalLines.Count)
-            {
-                return;
-            }
-
-            LogicalLines[_logicalLineIndex] = logicalLines[0];
-            LogicalLines.InsertRange(_logicalLineIndex + 1, logicalLines.Skip(1));
-
-            Current = new LogicalLineReader(LogicalLines[_logicalLineIndex]);
         }
     }
 }

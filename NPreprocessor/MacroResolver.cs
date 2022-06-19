@@ -27,11 +27,6 @@ namespace NPreprocessor
                 state = new State();
             }
 
-            if (state.CurrentLineDisabledRanges == null)
-            {
-                state.CurrentLineDisabledRanges = new List<(int start, int end)>();
-            }
-
             var result = new List<TextBlock>();
             while (true)
             {
@@ -48,57 +43,50 @@ namespace NPreprocessor
         {
             var result = new List<TextBlock>();
 
-            while (true)
+            while (txtReader.Current?.Remainder != null)
             {
                 var txt = txtReader.Current?.Remainder;
-
-                if (txt == null)
-                {
-                    break;
-                }
-
-                var disabledRegions = _stringPattern.Matches(txtReader.Current.Remainder).Select(s => (s.Index, s.Index + s.Length - 1)).ToList();
-
-                if (state.CurrentLineDisabledRanges != null)
-                {
-                    disabledRegions.AddRange(state.CurrentLineDisabledRanges);
-                }
+                var disabledRegions = _stringPattern.Matches(txt).Select(s => (s.Index, s.Index + s.Length - 1)).ToList();
 
                 (IMacro macro, int position) macroToCall = FindBestMacroToCall(txtReader, state, disabledRegions);
 
                 if (macroToCall != default)
                 {
-                    string skipped = macroToCall.position > 0 ? txtReader.Current.Remainder.Substring(0, macroToCall.position) : "";
+                    string skipped = macroToCall.position > 0 ? txt.Substring(0, macroToCall.position) : "";
+                    result.Add(new TextBlock(skipped) { Column = txtReader.Current.ColumnNumber, Line = txtReader.Current.LineNumber });
+
                     txtReader.Current.Advance(macroToCall.position);
 
                     var macroResult = await macroToCall.macro.Invoke(txtReader, state);
 
-                    var macroResultLenght = macroResult.Sum(b => b.Value.Length);
+                    if (macroResult.Any())
+                    {
+                        var toProcessMore = string.Join(string.Empty, macroResult.Where(m => !m.Finished).Select(m => m.Value));
+                        var processed = macroResult.Where(m => m.Finished);
+                        result.AddRange(processed);
 
-                    string remainder = txtReader.Current?.Remainder ?? "";
-                    state.CurrentLineDisabledRanges.AddRange(macroResult.Where(r => r.Finished).Select(skipped => (skipped.Column, skipped.Column + skipped.Value.Length - 1)));
+                        var cascadeTextReader = new TextReader(toProcessMore, state.NewLineEnding, macroResult.Min(m => m.Line));
 
-                    string macroResultTxt = string.Join(string.Empty, macroResult.Select(b => b.Value));
-                    string newLine = skipped + macroResultTxt + remainder;
-
-                    var cascadeTextReader = new TextReader(newLine, state.NewLineEnding);
-                    txtReader.ReplaceCurrentLine(cascadeTextReader.LogicalLines);
+                        result.AddRange(Resolve(cascadeTextReader, new State
+                        {
+                            DefinitionPrefix = state.DefinitionPrefix,
+                            Definitions = state.Definitions,
+                            Mappings = state.Mappings,
+                            MappingsParameters = state.MappingsParameters,
+                            NewLineEnding = state.NewLineEnding,
+                            Regexes = state.Regexes,
+                            Stack = new Stack<IMacro>(state.Stack),
+                        }).Result.Blocks);
+                    }
                 }
                 else
                 {
-                    if (txtReader.Current.Remainder != "")
-                    {
-                        result.Add(new TextBlock(txtReader.Current.RemainderRaw)
-                        {
-                            Column = txtReader.Current.ColumnNumber,
-                            Line = txtReader.Current.LineNumber
-                        });
-                    }
-
-                    state.CurrentLineDisabledRanges.Clear();
+                    result.Add(new TextBlock(txt) { Column = txtReader.Current.ColumnNumber, Line = txtReader.Current.LineNumber });
+                    txtReader.Current.Finish(false);
                     break;
                 }
             }
+
             return result;
         }
 

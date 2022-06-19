@@ -10,7 +10,7 @@ namespace NPreprocessor
             var macros = new List<IMacro>();
 
             macros.Add(new BlockCommentMacro() { IgnoreComment = ignoreComments });
-            macros.Add(new LineCommentMacro() { IgnoreComment = ignoreComments, Priority = -1 });
+            macros.Add(new LineCommentMacro() { IgnoreComment = ignoreComments });
             macros.Add(new UndefineMacro());
             macros.Add(new DefineMacro());
             macros.Add(new DefineResolveMacro());

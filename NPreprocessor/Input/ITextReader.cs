@@ -7,7 +7,5 @@ namespace NPreprocessor.Input
         LogicalLineReader Current { get; }
 
         bool MoveNext();
-
-        void ReplaceCurrentLine(List<LogicalLine> logicalLines);
     }
 }

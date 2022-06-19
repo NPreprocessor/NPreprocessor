@@ -5,6 +5,7 @@
         string Remainder { get; }
 
         string RemainderRaw { get; }
+
         bool AtStart { get; }
 
         int ColumnNumber { get; }
