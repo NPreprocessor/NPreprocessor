@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CFGToolkit.ExpressionEvaluator" Version="1.0.0-alfa-05" />
+    <PackageReference Include="CFGToolkit.ExpressionEvaluator" Version="1.0.0-alfa-06" />
   </ItemGroup>
 
 </Project>
