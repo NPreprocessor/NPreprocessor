@@ -100,7 +100,7 @@ namespace NPreprocessor.Macros.Derivations
             }
             else
             {
-                m4Line = $"if(`{expression}', `{@true}', `{@false}')";
+                m4Line = $"if(`{expression}', `{@false}', `{@true}')";
             }
             return Task.FromResult(new List<TextBlock> { new TextBlock(m4Line) { Column = columnNumber, Line = lineNumber }});
         }
