@@ -4,6 +4,7 @@
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=CFGToolkit_NPreprocessor&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=CFGToolkit_NPreprocessor)
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=CFGToolkit_NPreprocessor&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=CFGToolkit_NPreprocessor)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=CFGToolkit_NPreprocessor&metric=coverage)](https://sonarcloud.io/summary/new_code?id=CFGToolkit_NPreprocessor)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FNPreprocessor%2FNPreprocessor.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FNPreprocessor%2FNPreprocessor?ref=badge_shield)
 
 ## Description
 
@@ -36,3 +37,7 @@ The # character can be replaced by any string.
 - Add features from m4
 - Add features from gcc preprocessor
 - Add features from C# preprocessor
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FNPreprocessor%2FNPreprocessor.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FNPreprocessor%2FNPreprocessor?ref=badge_large)
