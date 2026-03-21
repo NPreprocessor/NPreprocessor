@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros
 {
-    public class DecrMacro : AritimeticMacroBase, IMacro
+    public class DecrMacro : ArithmeticMacroBase, IMacro
     {
         public DecrMacro() 
         {

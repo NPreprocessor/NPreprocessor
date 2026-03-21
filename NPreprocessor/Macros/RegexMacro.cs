@@ -31,7 +31,7 @@ namespace NPreprocessor.Macros
 
             if (args.Length != 2)
             {
-                throw new System.Exception("Invalid regex");
+                throw new System.ArgumentException("Invalid regex: exactly two arguments (pattern and replacement) are required.");
             }
 
             var name = MacroString.Trim(args[0]);

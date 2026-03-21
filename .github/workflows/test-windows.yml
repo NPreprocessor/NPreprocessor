@@ -21,7 +21,7 @@ jobs:
       - name: Setup dotnet tooling
         uses: actions/setup-dotnet@master
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '8.0.x'
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
         with:

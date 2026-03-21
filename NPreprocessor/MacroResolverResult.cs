@@ -33,7 +33,7 @@ namespace NPreprocessor
             {
                 if (i >= _lines.Length || i < 0)
                 {
-                    throw new System.Exception("Invalid index");
+                    throw new System.ArgumentOutOfRangeException(nameof(i), i, $"Index must be between 0 and {_lines.Length - 1}.");
                 }
 
                 return _lines[i];

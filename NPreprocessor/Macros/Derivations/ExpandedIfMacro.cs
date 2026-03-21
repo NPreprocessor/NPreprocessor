@@ -110,9 +110,14 @@ namespace NPreprocessor.Macros.Derivations
         {
             var remainder = txtReader.Current.Remainder;
 
-            bool insideQuotes = false;
             var commentIndex = remainder.IndexOf("//");
 
+            if (commentIndex == -1)
+            {
+                return remainder;
+            }
+
+            bool insideQuotes = false;
             for (var i = 0; i < commentIndex; i++)
             {
                 if (remainder[i] == '\"')
@@ -121,7 +126,7 @@ namespace NPreprocessor.Macros.Derivations
                 }
             }
 
-            if (commentIndex != -1 && !insideQuotes)
+            if (!insideQuotes)
             {
                 remainder = remainder.Substring(0, commentIndex);
             }

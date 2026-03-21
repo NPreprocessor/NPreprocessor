@@ -22,6 +22,12 @@ namespace NPreprocessor.Macros
             var call = CallParser.GetInvocation(reader, 0, state.Definitions);
             reader.Current.Advance(call.length);
             var args = call.args;
+
+            if (args == null || args.Length < 1)
+            {
+                return Task.FromResult(new List<TextBlock>());
+            }
+
             var name = MacroString.Trim(args[0]);
 
             if (state.Mappings.ContainsKey(name))

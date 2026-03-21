@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace NPreprocessor.Macros
 {
-    public class AritimeticMacroBase
+    public class ArithmeticMacroBase
     {
-        public AritimeticMacroBase()
+        public ArithmeticMacroBase()
         {
         }
 
@@ -15,13 +15,13 @@ namespace NPreprocessor.Macros
         {
             int line = txtReader.Current.LineNumber;
             int column = txtReader.Current.ColumnNumber;
-            
+
             var call = CallParser.GetInvocation(txtReader, 0, state.Definitions);
             var args = call.args;
 
-            if (args.Length < 1)
+            if (args == null || args.Length < 1)
             {
-                throw new System.Exception("Invalid decr");
+                throw new System.ArgumentException("Invalid arithmetic macro invocation: at least one argument is required.");
             }
 
             var expression = MacroString.Trim(args[0]);

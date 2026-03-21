@@ -35,7 +35,7 @@ namespace NPreprocessor.Macros
 
             if (args.Length < 1)
             {
-                throw new System.Exception("Invalid def");
+                throw new System.ArgumentException("Invalid define: at least one argument (name) is required.");
             }
             reader.Current.Advance(call.length);
 

@@ -1,5 +1,6 @@
 ﻿using NPreprocessor.Input;
 using NPreprocessor.Output;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -9,8 +10,8 @@ namespace NPreprocessor.Macros
 {
     public class DefineResolveMacro : IDynamicMacro
     {
-        private readonly Dictionary<string, Regex> _cache = new Dictionary<string, Regex>();
-        private readonly Dictionary<string, Regex> _escaped = new Dictionary<string, Regex>();
+        private readonly ConcurrentDictionary<string, Regex> _cache = new ConcurrentDictionary<string, Regex>();
+        private readonly ConcurrentDictionary<string, Regex> _escaped = new ConcurrentDictionary<string, Regex>();
 
         public DefineResolveMacro()
         {
@@ -128,22 +129,12 @@ namespace NPreprocessor.Macros
 
         private Regex GetEscapedRegex(string key)
         {
-            if (!_escaped.ContainsKey(key))
-            {
-                _escaped[key] = new Regex(Regex.Escape(key));
-            }
-
-            return _escaped[key];
+            return _escaped.GetOrAdd(key, k => new Regex(Regex.Escape(k)));
         }
 
         private Regex GetRegex(string key)
         {
-            if (!_cache.ContainsKey(key))
-            {
-                _cache[key] = new Regex(@"(?<=^|\b|\s|\W)(" + Regex.Escape(key) + @")(?=\b|\s|\W)");
-            }
-
-            return _cache[key];
+            return _cache.GetOrAdd(key, k => new Regex(@"(?<=^|\b|\s|\W)(" + Regex.Escape(k) + @")(?=\b|\s|\W)"));
         }
 
         private static bool IsInsideString(string result, int index, State state)

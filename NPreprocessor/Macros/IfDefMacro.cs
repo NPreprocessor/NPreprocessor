@@ -24,17 +24,23 @@ namespace NPreprocessor.Macros
             var call = CallParser.GetInvocation(reader, 0, state.Definitions);
             reader.Current.Advance(call.length);
             var args = call.args;
+
+            if (args == null || args.Length < 2)
+            {
+                throw new System.ArgumentException("Invalid ifdef: at least two arguments (name and true-branch) are required.");
+            }
+
             var name = MacroString.Trim(args[0]);
 
             if (state.Definitions.Contains(name))
             {
-                return Task.FromResult(MacroString.GetBlocks(args[1], state.NewLineEnding, args.Length >= 4 ? int.Parse(args[3]): lineNumber));
+                return Task.FromResult(MacroString.GetBlocks(args[1], state.NewLineEnding, args.Length > 3 ? int.Parse(args[3]) : lineNumber));
             }
             else
             {
                 if (args.Length >= 3)
                 {
-                    return Task.FromResult(MacroString.GetBlocks(args[2], state.NewLineEnding, args.Length >= 4 ? int.Parse(args[4]): lineNumber));
+                    return Task.FromResult(MacroString.GetBlocks(args[2], state.NewLineEnding, args.Length > 4 ? int.Parse(args[4]) : lineNumber));
                 }
                 else
                 {

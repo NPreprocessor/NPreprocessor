@@ -1,6 +1,7 @@
 ﻿using NPreprocessor.Input;
 using NPreprocessor.Macros;
 using NPreprocessor.Output;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -11,7 +12,7 @@ namespace NPreprocessor
     public class MacroResolver : IMacroResolver
     {
         private readonly List<IMacro> _macros = new List<IMacro>();
-        private readonly Dictionary<IMacro, Regex> _cache = new Dictionary<IMacro, Regex>();
+        private readonly ConcurrentDictionary<IMacro, Regex> _cache = new ConcurrentDictionary<IMacro, Regex>();
         private readonly Regex _stringPattern = new Regex(@"""((?:\\.|[^\\""])*)""");
         public MacroResolver(List<IMacro> macros)
         {
@@ -45,7 +46,7 @@ namespace NPreprocessor
 
             while (txtReader.Current?.Remainder != null)
             {
-                var txt = txtReader.Current?.Remainder;
+                var txt = txtReader.Current.Remainder;
                 var disabledRegions = _stringPattern.Matches(txt).Select(s => (s.Index, s.Index + s.Length - 1)).ToList();
 
                 (IMacro macro, int position) macroToCall = FindBestMacroToCall(txtReader, state, disabledRegions);
@@ -133,12 +134,7 @@ namespace NPreprocessor
 
         private Regex CreateRegexForMacro(IMacro macro)
         {
-            if (!_cache.ContainsKey(macro))
-            {
-                _cache[macro] = new Regex(CreatePatternForMacro(macro));
-            }
-
-            return _cache[macro];
+            return _cache.GetOrAdd(macro, m => new Regex(CreatePatternForMacro(m)));
         }
     }
 }

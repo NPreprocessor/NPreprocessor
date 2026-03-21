@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace NPreprocessor
@@ -20,7 +21,8 @@ namespace NPreprocessor
                 var argsWithBrackets = match.args;
                 var args = SplitArguments(argsWithBrackets, defs);
 
-                return (name, args, name.Length + 2 + argsWithBrackets.Length);
+                int parenthesesLength = 2; // opening '(' and closing ')'
+                return (name, args, name.Length + parenthesesLength + argsWithBrackets.Length);
             }
 
             return default;
@@ -29,9 +31,9 @@ namespace NPreprocessor
 
         public static (string name, string[] args, int length) GetInvocation(ITextReader reader, int startIndex = 0, HashSet<string> defs = null)
         {
-            var currentText = reader.Current.Remainder;
+            var currentTextBuilder = new StringBuilder(reader.Current.Remainder);
 
-            var call = GetInvocation(currentText, startIndex, defs);
+            var call = GetInvocation(currentTextBuilder.ToString(), startIndex, defs);
 
             while (call == default)
             {
@@ -39,8 +41,8 @@ namespace NPreprocessor
                 {
                     break;
                 }
-                currentText += reader.Current.Remainder;
-                call = GetInvocation(currentText, startIndex, defs);
+                currentTextBuilder.Append(reader.Current.Remainder);
+                call = GetInvocation(currentTextBuilder.ToString(), startIndex, defs);
             }
 
             return call;
@@ -65,13 +67,13 @@ namespace NPreprocessor
                         insideString = true;
                     }
 
-                    if (i < remainder.Length - 1 && remainder.Substring(i, 2) == @"\'")
+                    if (i < remainder.Length - 1 && remainder[i] == '\\' && remainder[i + 1] == '\'')
                     {
                         i += 2;
                         continue;
                     }
 
-                    if (i < remainder.Length - 1 && remainder.Substring(i, 2) == @"\""")
+                    if (i < remainder.Length - 1 && remainder[i] == '\\' && remainder[i + 1] == '"')
                     {
                         i += 2;
                         continue;
@@ -108,10 +110,8 @@ namespace NPreprocessor
                     var args = remainder.Substring(start + 1, i - start - 1);
                     return (true, name, args);
                 }
-
-                
             }
-            return (false,null, null);
+            return (false, null, null);
         }
 
         private static string[] SplitArguments(string args, HashSet<string> defs)
@@ -134,13 +134,13 @@ namespace NPreprocessor
                     insideString = true;
                 }
 
-                if (i < args.Length - 1 && args.Substring(i, 2) == @"\'")
+                if (i < args.Length - 1 && args[i] == '\\' && args[i + 1] == '\'')
                 {
                     i += 2;
                     continue;
                 }
 
-                if (i < args.Length - 1 && args.Substring(i, 2) == @"\""")
+                if (i < args.Length - 1 && args[i] == '\\' && args[i + 1] == '"')
                 {
                     i += 2;
                     continue;
