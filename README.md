@@ -1,9 +1,5 @@
 # NPreprocessor
 [<img src="https://img.shields.io/nuget/vpre/NPreprocessor.svg">]( https://www.nuget.org/packages/NPreprocessor)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=CFGToolkit_NPreprocessor&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=CFGToolkit_NPreprocessor)
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=CFGToolkit_NPreprocessor&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=CFGToolkit_NPreprocessor)
-[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=CFGToolkit_NPreprocessor&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=CFGToolkit_NPreprocessor)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=CFGToolkit_NPreprocessor&metric=coverage)](https://sonarcloud.io/summary/new_code?id=CFGToolkit_NPreprocessor)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FNPreprocessor%2FNPreprocessor.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FNPreprocessor%2FNPreprocessor?ref=badge_shield)
 
 ## Description
